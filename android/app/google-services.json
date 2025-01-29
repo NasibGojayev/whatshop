@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "591120343721",
+    "project_id": "whatshop-5a3f8",
+    "storage_bucket": "whatshop-5a3f8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:591120343721:android:ef8c1063ddb21401f8bfb8",
+        "android_client_info": {
+          "package_name": "com.whatshop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBp7QqR6WZb_PgJZqjsl2AQkZ5zLE_wqqA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:591120343721:android:5168740960f23bb6f8bfb8",
+        "android_client_info": {
+          "package_name": "com.whatshop.whatshop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBp7QqR6WZb_PgJZqjsl2AQkZ5zLE_wqqA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
