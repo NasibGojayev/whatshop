@@ -1,10 +1,9 @@
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:whatshop/Auth/auth_repository.dart';
 import 'package:whatshop/Auth/sign_in.dart';
-import 'package:whatshop/pages/home_page.dart';
-
 import '../pages/first_page.dart';
 import '../tools/colors.dart';
 

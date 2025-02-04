@@ -1,7 +1,5 @@
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:equatable/equatable.dart';
-
 //events and states
 import 'category_event.dart';
 import 'category_state.dart';

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:provider/provider.dart';
 import 'package:whatshop/Auth/auth_repository.dart';
 import 'package:whatshop/bloc_management/category_bloc/category_bloc.dart';
 import 'package:whatshop/bloc_management/category_bloc/category_state.dart';
@@ -10,6 +9,7 @@ import 'package:whatshop/tools/colors.dart';
 
 import '../Auth/sign_in.dart';
 import '../Auth/signed_in_user.dart';
+import 'cart_page.dart';
 
 class CategoryPage extends StatelessWidget {
   const CategoryPage({super.key});
@@ -17,6 +17,7 @@ class CategoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double widthSize = MediaQuery.of(context).size.width;
+    // ignore: unused_local_variable
     double heightSize = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
@@ -86,6 +87,7 @@ class CategoryPage extends StatelessWidget {
                       height: 73,
                       child: IconButton(
                         onPressed: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=>CartPage()));
                         },
                         icon: SvgPicture.asset("assets/icons/card.svg"),
                       ),

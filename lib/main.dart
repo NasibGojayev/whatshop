@@ -1,33 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:whatshop/Auth/auth_repository.dart';
-import 'package:whatshop/Auth/sign_in.dart';
+import 'package:whatshop/bloc_management/address_bloc/address_bloc.dart';
+import 'package:whatshop/bloc_management/address_bloc/address_event.dart';
+import 'package:whatshop/bloc_management/cart_bloc/cart_bloc.dart';
+import 'package:whatshop/bloc_management/cart_bloc/cart_event.dart';
 import 'package:whatshop/bloc_management/category_bloc/category_bloc.dart';
 import 'package:whatshop/bloc_management/category_bloc/category_event.dart';
 import 'package:whatshop/bloc_management/favorite_bloc/favorite_event.dart';
 import 'package:whatshop/bloc_management/product_bloc/product_bloc.dart';
 import 'package:whatshop/bloc_management/product_bloc/product_event.dart';
-import 'package:whatshop/pages/first_page.dart';
+import 'package:whatshop/bloc_management/user_bloc/user_bloc.dart';
+import 'package:whatshop/bloc_management/user_bloc/user_event.dart';
 import 'package:whatshop/pages/home_page.dart';
-import 'package:provider/provider.dart';
-import 'package:whatshop/provider_classes/user_details.dart';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'bloc_management/favorite_bloc/favorite_bloc.dart';
 import 'firebase_options.dart';
 
 void main() async {
+
   WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  await Hive.openBox<List<String>>('favorites');
+  await Hive.openBox<List<String>>('cart');
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(
-    MultiProvider(
-      providers: [
-        BlocProvider(create: (_)=>ProductBloc()..add(FetchProductsEvent())),
-        BlocProvider(create: (_)=>FavoriteBloc()..add(FetchFavoritesEvent())),
 
-        ChangeNotifierProvider(create: (_) => UserDetails()),
+
+
+
+
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_)=>UserBloc()..add(FetchUserEvent())),
+        BlocProvider(create: (_)=>ProductBloc()..add(FetchByCategoryEvent("0"))),
+        BlocProvider(create: (_)=>FavoriteBloc()..add(FetchFavoritesEvent())),
+        BlocProvider(create: (_)=>AddressBloc()..add(FetchAddressEvent())),
+        BlocProvider(create: (_)=>CartBloc()..add(FetchCartEvent())),
         BlocProvider(create: (_)=>CategoryBloc()..add(FetchCategories()))
       ],
       child: MyApp(),
@@ -63,7 +77,7 @@ class MyApp extends StatelessWidget {
           } else {
             // No user is signed in
             return Scaffold(
-              body: FirstPage(),
+              body: HomePage(),
             );
           }
         },

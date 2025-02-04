@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:whatshop/Auth/auth_repository.dart';
 import 'favorite_event.dart';
 import 'favorite_state.dart';
@@ -8,46 +10,58 @@ class FavoriteBloc extends Bloc<FavoriteEvent,FavoriteState>{
   FavoriteBloc() : super(FavoriteLoadingState()) {
     on<FetchFavoritesEvent>(_onFetchFavorites);
     on<ToggleFavoriteEvent>(_onToggleFavorite);
+    _getUserData();
   }
 
 
   //---------------------------------------------
-  Future<String?> _userId() async{
-    try{
-      Customer? user = await AuthRepository.getCurrentUser();
-      String? userId = user?.id;
-      return userId;
-    }catch(e){
-      print("ID elde ederken xeta bas verdi $e");
-    }
-  }
-  // ---------------------------------------
-
 
   List<String> favorites=[];
-  late DocumentReference userRef;
+
+  late User? user;
+   String? userId;
+   DocumentReference? userRef;
+
+   var hiveFavoriteBox = Hive.box<List<String>>('favorites');
+
+
+
+  Future<void> _getUserData() async{
+     user = await getCurrentUser();
+    if(user != null){
+      userId = user!.uid;
+      userRef =  FirebaseFirestore.instance.collection('Users').doc(userId);
+    }
+    else {
+      print('user is null');
+      favorites = hiveFavoriteBox.get('favorites') ?? [];
+
+      print(' ${hiveFavoriteBox.get("favorites")}');
+
+    }
+  }
+
+  // --------------------------------------------
+
+
   Future<void> _onFetchFavorites(
       FetchFavoritesEvent event,
       Emitter<FavoriteState> emit
-      )async{
+      ) async{
     emit(FavoriteLoadingState());
     try{
-      String? currentUserId = await _userId();
-      if(currentUserId==null){
-        emit(FavoriteErrorState('user not found'));
+      if(user == null){
+        emit(NotLoggedInState(favorites));
         return;
       }
-      userRef = FirebaseFirestore.instance.collection('Users').doc(currentUserId);
-      DocumentSnapshot userDoc = await userRef.get();
+
+      final userDoc = await userRef!.get();
       if(userDoc.exists){
         favorites = List<String>.from(userDoc['favorites']);
         emit(FavoriteLoadedState(favorites));
         return;
       }
-      else{
-        emit(FavoriteErrorState("error fetching the favorites"));
-        return;
-      }
+
     } catch(e){
       emit(FavoriteErrorState("error fetching the favorites : $e"));
     }
@@ -59,28 +73,36 @@ class FavoriteBloc extends Bloc<FavoriteEvent,FavoriteState>{
 
     List<String> updatedList = List.from(favorites); // Create the copy *outside* the try-catch
     try{
-      String? currentUserId = await _userId();
-      if(currentUserId == null){
-        emit(FavoriteErrorState("error finding user id"));
-        return;
+
+      if(user != null){
+        if(updatedList.contains(event.productId)){ // Use updatedList here too
+          await userRef!.update({
+            'favorites': FieldValue.arrayRemove([event.productId]),
+          });
+          updatedList.remove(event.productId);
+
+        }
+        else {
+          await userRef!.update({
+            'favorites': FieldValue.arrayUnion([event.productId]),
+          });
+          updatedList.add(event.productId);
+        }
+        emit(FavoriteLoadedState(updatedList));
+      }
+      else{
+
+        if(updatedList.contains(event.productId)){
+          updatedList.remove(event.productId);
+        }
+        else{
+          updatedList.add(event.productId);
+        }
+        hiveFavoriteBox.put('favorites', updatedList);
+        emit(NotLoggedInState(updatedList));
       }
 
-      if(updatedList.contains(event.productId)){ // Use updatedList here too
-        await userRef.update({
-          'favorites': FieldValue.arrayRemove([event.productId]),
-        });
-        updatedList.remove(event.productId);
-
-      }
-      else {
-        await userRef.update({
-          'favorites': FieldValue.arrayUnion([event.productId]),
-        });
-        updatedList.add(event.productId);
-
-      }
       favorites = List.from(updatedList); // Update original list as well, if needed
-      emit(FavoriteLoadedState(updatedList)); // Emit the updated list in *both* cases
       return;
 
     }catch(e){

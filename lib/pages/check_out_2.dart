@@ -1,13 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:provider/provider.dart';
-import 'package:whatshop/main.dart';
-import 'package:whatshop/pages/first_page.dart';
-import 'package:whatshop/pages/home_page.dart';
-import 'package:whatshop/Auth/sign_in.dart';
-
-import '../provider_classes/user_details.dart';
 import '../tools/colors.dart';
 
 class CheckOut2 extends StatelessWidget {
@@ -97,7 +90,10 @@ class CheckOut2 extends StatelessWidget {
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: SvgPicture.asset('assets/icons/tre_xetleri.svg',width: widthSize*0.24,
+                    child: SvgPicture.asset('assets/icons/tre_xetleri.svg',width: widthSize*0.2
+
+
+                      ,
                       colorFilter: ColorFilter.mode(Color(0xFF147AFF), BlendMode.srcIn),),
                   ),                  Column(
                     children: [
@@ -118,7 +114,7 @@ class CheckOut2 extends StatelessWidget {
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: SvgPicture.asset('assets/icons/tre_xetleri.svg',width: widthSize*0.24,),
+                    child: SvgPicture.asset('assets/icons/tre_xetleri.svg',width: widthSize*0.2,),
                   ),
                   Column(
                     children: [

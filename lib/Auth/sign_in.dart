@@ -1,12 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:provider/provider.dart';
 import 'package:whatshop/Auth/auth_repository.dart';
 import 'package:whatshop/pages/first_page.dart';
 import 'package:whatshop/pages/home_page.dart';
 import 'package:whatshop/Auth/sign_up.dart';
-import 'package:whatshop/deletable/product_provider.dart';
 import 'package:whatshop/tools/colors.dart';
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -206,7 +204,6 @@ class _SecondPageState extends State<SecondPage> {
                if(AuthRepository.isSignedIn){
 
                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-                   Provider.of<ProductProvider>(context).fetchFavorites();
                    return HomePage();
                  }));
                }

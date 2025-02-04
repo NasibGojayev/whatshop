@@ -2,6 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+
+//----------------------------
+User? _cachedUser;
+
+Future<User?> getCurrentUser() async{
+  if(_cachedUser!=null) return _cachedUser;
+  _cachedUser = FirebaseAuth.instance.currentUser;
+  return _cachedUser;
+}
+//----------------------------
 class AuthRepository{
 
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -9,16 +19,6 @@ class AuthRepository{
   static bool isSignedUp = false;
   static bool isSignedIn = false;
 
-  /*Future<void> saveUserId() async{
-    String userId = await _auth.currentUser!.uid;
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('userId', userId);
-  }
-  static Future<String?> getUserId() async{
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('userId');
-  }*/
-  
 
    static Future<Customer?> signUp(String email,String password,String name)async{
     try{
@@ -29,12 +29,15 @@ class AuthRepository{
       User? user = result.user;
       if(user!=null){
         String userId = user.uid;
-
+        user.updateProfile(displayName:name);
         Customer customer = Customer(
             id: userId,
             name: name,
             password: password,
-            email: email);
+            email: email,
+            addresses: [],
+            favorites: []
+        );
         addUserToFirestore(customer);
         return customer;
 
@@ -48,25 +51,6 @@ class AuthRepository{
     }
 
   }
-  // Get the currently signed-in user
-  static Future<Customer?> getCurrentUser() async {
-     FirebaseFirestore firestore = FirebaseFirestore.instance;
-    User? user = _auth.currentUser; // Get the current user from Firebase
-    if (user != null) {
-     DocumentSnapshot userData = await firestore.collection('Users').doc(user.uid).get();
-      // If the user is signed in, return a Customer object with their data
-      return Customer(
-        id: user.uid, // Firebase UID
-        name: userData['name'] ?? '', // User's name (optional)
-        email: user.email ?? '', // User's email
-        password: userData['password'], // Password is not retrievable from Firebase for security reasons
-      );
-    } else {
-      return null; // No user is signed in
-    }
-  }
-
-
 
 
   static Future<void> addUserToFirestore(Customer customer) async{
@@ -74,7 +58,9 @@ class AuthRepository{
     await _firestore.collection('Users').doc(customer.id).set({
       'name': customer.name,
       'email': customer.email,
-      'password':customer.password
+      'password':customer.password,
+      'addresses':customer.addresses,
+      'favorites':customer.favorites
     });
   }
 
@@ -124,12 +110,16 @@ class Customer{
   String? name;
   String? password;
   String? email;
+  List<Map<String,String>> addresses;
+  List<String> favorites;
 
   Customer({
     required this.id,
     required this.name,
     required this.password,
-    required this.email
+    required this.email,
+    required this.addresses,
+    required this.favorites
   });
 }
 

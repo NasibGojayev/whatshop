@@ -1,4 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:whatshop/bloc_management/product_bloc/product_event.dart';
+import 'package:whatshop/pages/cart_page.dart';
+import 'package:whatshop/tools/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -10,7 +12,6 @@ import 'package:whatshop/bloc_management/category_bloc/category_state.dart';
 import 'package:whatshop/bloc_management/favorite_bloc/favorite_bloc.dart';
 import 'package:whatshop/bloc_management/favorite_bloc/favorite_state.dart';
 import 'package:whatshop/bloc_management/product_bloc/product_bloc.dart';
-import 'package:whatshop/bloc_management/product_bloc/product_event.dart';
 import 'package:whatshop/bloc_management/product_bloc/product_state.dart';
 import 'package:whatshop/pages/category_page.dart';
 import 'package:whatshop/pages/detailed_product_page.dart';
@@ -21,10 +22,9 @@ import '../tools/colors.dart';
 
 class HomePage extends StatelessWidget {
 
-  final TextEditingController _searchController = TextEditingController();
 
-
-  ScrollController scrollController = ScrollController();
+  final ScrollController scrollController = ScrollController();
+  final SearchController searchController = SearchController();
 
   void scrollControllerListener(){
     if(scrollController.offset>=scrollController.position.maxScrollExtent
@@ -36,38 +36,46 @@ class HomePage extends StatelessWidget {
   @override
 
   Widget build(BuildContext context) {
-
-    //List<Map<String,dynamic>> categories = categoryProvider.categories;
-    double widthSize = MediaQuery.of(context).size.width;
-    double heightSize = MediaQuery.of(context).size.height;
-    int crossAxisCount = (widthSize < 500) ? 2 :
-    (widthSize < 960) ? 3 :
-    (widthSize < 1280) ? 4 : 5;
-
-    double childAspectRatio = (widthSize < 360) ? 0.62 :
-    (widthSize < 430) ? 0.75:
-    (widthSize < 500) ? 0.9:
-    (widthSize < 550) ? 0.68:
-    (widthSize < 650) ? 0.75:
-    (widthSize < 800) ? 0.9:
-    (widthSize < 960) ? 1.1:
-    (widthSize < 1060) ? 1.0:
-    (widthSize < 1200) ? 1.1:
-    (widthSize < 1300) ? 1.2:1.3;
-    String categoryId="0";
+    double widthSize = getWidthSize(context);
+    //double heightSize = getHeightSize(context);
+    int crossAxisCount = getCrossAxisCount(context);
+    double childAspectRatio = getChildAspectRatio(context);
+    String categoryId = "0";
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: SafeArea(
           child: Column(
             children: [
               appBar(),
-              Center(child: SearchField(heightSize)),
+              Center(child: SearchBar(
+                controller: searchController,
+                padding: const WidgetStatePropertyAll<EdgeInsets>(
+                    EdgeInsets.symmetric(horizontal: 16.0)),
+                onTap: () {
+                  searchController.openView();
+                },
+                onChanged: (_) {
+                  searchController.openView();
+                },
+                leading: const Icon(Icons.search),
+                trailing: <Widget>[
+                  Tooltip(
+                    message: 'Change brightness mode',
+                    child: IconButton(
+                      onPressed: () {
+
+                      },
+                      icon: const Icon(Icons.wb_sunny_outlined),
+                      selectedIcon: const Icon(Icons.brightness_2_outlined),
+                    ),
+                  )
+                ],
+              )),
               Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Container(
                       height: 40,
-                      child: BlocConsumer<CategoryBloc,CategoryState>(
-                        listener: (context,state){},
+                      child: BlocBuilder<CategoryBloc,CategoryState>(
                         builder: (context,state) {
                           if(state is CategoryLoaded){
                             return ListView.builder(
@@ -82,13 +90,17 @@ class HomePage extends StatelessWidget {
                                   onPressed: (){
                                     categoryId = state.categories[index]['id'];
                                     context.read<CategoryBloc>().add(SetSelectedIndex(index));
+                                    context.read<ProductBloc>().add(FetchByCategoryEvent(categoryId));
                                   },
                                 );
                               }
                               ,
                             );
                           }
-                          else return CircularProgressIndicator();
+                          else {
+
+                            return LinearProgressIndicator();
+                          }
 
                         }
                       ),
@@ -119,10 +131,7 @@ class HomePage extends StatelessWidget {
                                         (context)=>DetailedProductPage(
                                       index: index,)));
                                   },
-                                  child: BlocBuilder<FavoriteBloc,FavoriteState>(
-                                    builder: (context,state) {
-                                      if(state is FavoriteLoadedState){
-                                        return Item(
+                                  child:  Item(
                                           id: product['id'],
                                           onPressed: (){
                                             context.read<FavoriteBloc>().add(ToggleFavoriteEvent(product['id']));
@@ -130,24 +139,45 @@ class HomePage extends StatelessWidget {
                                           image: Image.asset(product['picPath']),
                                           name: product['name'],
                                           price: product['price'],
-                                          icon: state.favorites.contains(product['id'])
-                                              ? SvgPicture.asset('assets/icons/hearted.svg')
-                                              : SvgPicture.asset('assets/icons/unhearted.svg'),
-                                        );
-                                      }
-                                      else return CircularProgressIndicator();
-                                    }
-                                  ),
+                                          icon: BlocBuilder<FavoriteBloc,FavoriteState>(
+                                              builder: (context,state){
+                                                if(state is FavoriteLoadedState){
+                                                 return state.favorites.contains(product['id'])
+                                                      ? SvgPicture.asset('assets/icons/hearted.svg')
+                                                      : SvgPicture.asset('assets/icons/unhearted.svg');
+                                                }
+                                                else if(state is NotLoggedInState){
+                                                  return state.favorites.contains(product['id'])
+                                                      ? SvgPicture.asset('assets/icons/hearted.svg')
+                                                      : SvgPicture.asset('assets/icons/unhearted.svg');
+                                                }
+                                                else if(state is FavoriteLoadingState){
+                                                  return Center(child: CircularProgressIndicator(),);
+                                                }
+                                                else{
+                                                  return Text("error");
+                                                }
+                                              }),
+                                       )
+
+
                                 );
                               },
                             );
                           }
                           else if(state is ProductLoadingState){
-                            return CircularProgressIndicator();
+                            return Center(child: CircularProgressIndicator());
                           }else if(state is ProductErrorState){
                             return ScaffoldMessenger(child: SnackBar(content: Text('there is an error fetching products')));
                           }
-                          else return CircularProgressIndicator();
+                          else if(state is EndOfProductsState) {
+                            print(state);
+                            return Center(child: Text('Heleki mehsul yoxdur , gozlemede qalin ✨'),);
+                          }
+                          else{
+                            print(state);
+                            return Center(child: Text('Gozlenilmeyen xeta bas verdi'),);
+                          }
                         }
                       )
 
@@ -183,6 +213,7 @@ class HomePage extends StatelessWidget {
                       height: 73,
                       child: IconButton(
                           onPressed: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context)=>CartPage()));
                           },
                           icon: SvgPicture.asset("assets/icons/card.svg"),
                     ),
@@ -214,18 +245,7 @@ class HomePage extends StatelessWidget {
       );
   }
 
-  Container SearchField(double heightSize) {
-    return Container(
-                  margin: EdgeInsets.symmetric(vertical: heightSize*0.01),
-                  child: InputField(
-                    controller: _searchController,
-                    inputType: TextInputType.name,
-                    labelText: "",
-                    prefixIcon: Icon(Icons.search,size: 34,),
-                  ),
 
-                );
-  }
 
   Container appBar() {
     return Container(
@@ -260,7 +280,7 @@ class Item extends StatelessWidget {
   final String id;
   final String name;
   final num price;
-  final SvgPicture icon;
+  final Widget icon;
   final VoidCallback onPressed;
   const Item({
     super.key,
@@ -277,8 +297,8 @@ class Item extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double widthSize = MediaQuery.of(context).size.width;
-    double heightSize = MediaQuery.of(context).size.height;
+    //double widthSize = MediaQuery.of(context).size.width;
+    //double heightSize = MediaQuery.of(context).size.height;
     return Container(
       color: bozumsu, // Light grey background
       child: Column(

@@ -1,3 +1,4 @@
+/*
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -62,7 +63,7 @@ class Product2Provider with ChangeNotifier {
   Future<void> fetchProducts()async{
     if(_productsFetched) return;
     if(_allCachedProducts.isNotEmpty){
-      _products = _allCachedProducts!;
+      _products = _allCachedProducts;
     };
     try{
       final QuerySnapshot snapshot =
@@ -237,3 +238,37 @@ class Product2Provider with ChangeNotifier {
 
 
 
+*/
+
+
+
+// bloc management fetch products
+
+/* Future<void> _onFetchProducts(
+      FetchProductsEvent event,
+      Emitter<ProductState> emit
+      ) async{
+
+    emit(ProductLoadingState());
+    try{
+      if(_products.isNotEmpty){
+        emit(ProductLoadedState(_products));
+        return;
+      }
+
+      final QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('products')
+          .orderBy('createdAt', descending: true)
+          .limit(14)
+          .get();
+      if (snapshot.docs.isEmpty) {
+        emit(EndOfProductsState()); // No products available
+        return;
+      }
+      _products.clear();
+      _products.addAll(snapshot.docs.map((doc)=>doc.data() as Map<String,dynamic>).toList());
+      _lastDocument = snapshot.docs.last;
+      emit(ProductLoadedState(_products));
+    }catch(error){
+      emit(ProductErrorState('Error Fetching the products : $error'));
+    }
+  }*/
