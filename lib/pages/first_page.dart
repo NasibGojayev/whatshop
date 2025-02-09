@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../Auth/sign_in.dart';
+import '../tools/colors.dart';
 class FirstPage extends StatelessWidget {
   const FirstPage({super.key});
 
@@ -140,7 +141,7 @@ class GetStarted extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 54, vertical: 14.50),
         clipBehavior: Clip.antiAlias,
         decoration: ShapeDecoration(
-          color: Color(0xFF25D366),
+          color: mainGreen,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(60),
           ),

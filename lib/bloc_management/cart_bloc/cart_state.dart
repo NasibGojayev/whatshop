@@ -5,20 +5,16 @@ abstract class CartState extends Equatable{
   List<Object> get props =>[];
 }
 
-class NotLoggedInState extends CartState{
-  final List<String> cart;
-  NotLoggedInState(this.cart);
-  @override
-  List<Object> get props => [cart];
-}
+
 
 class CartLoadingState extends CartState{}
 
 class CartLoadedState extends CartState{
-  final List<String> cart;
-  CartLoadedState(this.cart);
+  final List<Map<String,dynamic>> cartProducts;
+  final List<Map<String,dynamic>> cart;
+  CartLoadedState(this.cart,this.cartProducts);
   @override
-  List<Object> get props => [cart];
+  List<Object> get props => [cart,cartProducts];
 }
 class CartErrorState extends CartState{
   final String error;

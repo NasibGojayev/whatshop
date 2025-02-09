@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:whatshop/Auth/auth_repository.dart';
 import 'favorite_event.dart';
 import 'favorite_state.dart';
@@ -22,7 +21,6 @@ class FavoriteBloc extends Bloc<FavoriteEvent,FavoriteState>{
    String? userId;
    DocumentReference? userRef;
 
-   var hiveFavoriteBox = Hive.box<List<String>>('favorites');
 
 
 
@@ -34,9 +32,6 @@ class FavoriteBloc extends Bloc<FavoriteEvent,FavoriteState>{
     }
     else {
       print('user is null');
-      favorites = hiveFavoriteBox.get('favorites') ?? [];
-
-      print(' ${hiveFavoriteBox.get("favorites")}');
 
     }
   }
@@ -51,7 +46,7 @@ class FavoriteBloc extends Bloc<FavoriteEvent,FavoriteState>{
     emit(FavoriteLoadingState());
     try{
       if(user == null){
-        emit(NotLoggedInState(favorites));
+        emit(FavoriteErrorState("user is null"));
         return;
       }
 
@@ -98,8 +93,7 @@ class FavoriteBloc extends Bloc<FavoriteEvent,FavoriteState>{
         else{
           updatedList.add(event.productId);
         }
-        hiveFavoriteBox.put('favorites', updatedList);
-        emit(NotLoggedInState(updatedList));
+
       }
 
       favorites = List.from(updatedList); // Update original list as well, if needed

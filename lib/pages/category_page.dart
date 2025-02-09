@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:whatshop/Auth/auth_repository.dart';
 import 'package:whatshop/bloc_management/category_bloc/category_bloc.dart';
 import 'package:whatshop/bloc_management/category_bloc/category_state.dart';
@@ -61,62 +60,68 @@ class CategoryPage extends StatelessWidget {
 
                 width: widthSize,
                 height: 73,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      width: widthSize*0.22,
-                      height: 73,
-                      child: IconButton(
-                          onPressed: (){
-                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>HomePage()));
-                          },
-                          icon: Icon(Icons.home_filled)
-                      ),
-                    ),
-                    Container(
-                      width: widthSize*0.22,
-                      height: 73,
-                      child: IconButton(
-                          onPressed: (){},
-                          icon: Icon(Icons.category)
-                      ),
-                    ),
-                    Container(
-                      width: widthSize*0.22,
-                      height: 73,
-                      child: IconButton(
-                        onPressed: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=>CartPage()));
-                        },
-                        icon: SvgPicture.asset("assets/icons/card.svg"),
-                      ),
-                    ),
-                    Container(
-                      width: widthSize*0.22,
-                      height: 73,
-                      child: IconButton(
-                          onPressed: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context){
-                              if(AuthRepository.isSignedIn){
-                                return SafeArea(child: Scaffold(body: SignedInUser()));
-                              }
-                              else{
-                                return Scaffold(body: SafeArea(child: SingleChildScrollView(child: SecondPage())));
-                              }
-                            }));
-                          },
-                          icon: Icon(Icons.person)
-                      ),
-                    )
-
-                  ],
-                ),
+                child: BottomPanel(widthSize: widthSize),
               )
             ],
           ),
 
       ),
+    );
+  }
+}
+
+class BottomPanel extends StatelessWidget {
+  final double widthSize;
+  const BottomPanel({super.key, required this.widthSize});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: widthSize,
+      height: 73,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, -3),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildBottomIcon(context, Icons.home_filled, () => Navigator.push(context, MaterialPageRoute(builder: (_) => HomePage()))),
+          _buildBottomIcon(context, Icons.category, (){}),
+          _buildBottomIcon(context, Icons.shopping_cart, () =>Navigator.push(context, MaterialPageRoute(builder: (_) => const CartPage()))),
+          _buildBottomIcon(context, Icons.person, () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AuthRepository.isSignedIn
+                    ? const SafeArea(child: Scaffold(body: SignedInUser()))
+                    : Scaffold(body: SafeArea(child: SingleChildScrollView(child: SecondPage()))),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomIcon(BuildContext context, IconData icon, VoidCallback onTap) {
+    return SizedBox(
+      width: widthSize * 0.22,
+      height: 73,
+      child: IconButton(
+        onPressed: onTap,
+        icon: Icon(icon),
+      ),
+
+
+
     );
   }
 }

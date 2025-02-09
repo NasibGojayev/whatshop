@@ -81,7 +81,7 @@ class CheckOut1 extends StatelessWidget {
                          margin: EdgeInsets.only(bottom: 15),
                          clipBehavior: Clip.antiAlias,
                          decoration: ShapeDecoration(
-                           color: Color(0xFFECECEC),
+                           color:  bozumsu,
                            shape: RoundedRectangleBorder(
                              borderRadius: BorderRadius.circular(20),
                            ),
@@ -183,7 +183,7 @@ class CheckOut1 extends StatelessWidget {
                      height: 70,
                      clipBehavior: Clip.antiAlias,
                      decoration: ShapeDecoration(
-                       color: Color(0xFF25D366),
+                       color: mainGreen,
                        shape: RoundedRectangleBorder(
                          borderRadius: BorderRadius.circular(60),
                        ),

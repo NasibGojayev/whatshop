@@ -5,12 +5,12 @@ abstract class FavoriteState extends Equatable{
   List<Object> get props =>[];
 }
 
-class NotLoggedInState extends FavoriteState{
+/*class FavNotLoggedInState extends FavoriteState{
   final List<String> favorites;
-  NotLoggedInState(this.favorites);
+  FavNotLoggedInState(this.favorites);
   @override
   List<Object> get props => [favorites];
-}
+}*/
 
 class FavoriteLoadingState extends FavoriteState{}
 

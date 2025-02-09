@@ -12,10 +12,10 @@ import '../bloc_management/cart_bloc/cart_event.dart';
 import '../tools/colors.dart';
 import 'cart_page.dart';
 class DetailedProductPage extends StatelessWidget {
-  final int index;
+  final String productId;
   DetailedProductPage(
       {super.key,
-      required this.index,
+      required this.productId,
       });
 
   @override
@@ -32,7 +32,9 @@ class DetailedProductPage extends StatelessWidget {
         builder: (context,state) {
 
            if(state is ProductLoadedState){
-             final Map<String,dynamic> product = state.products[index];
+             final product = state.products.firstWhere(
+                   (p) => p['id'] == productId
+             );
              return Column(
                children: [
                  Expanded(
@@ -54,7 +56,7 @@ class DetailedProductPage extends StatelessWidget {
                      ),
                    ),
                  ),
-                 bottom_buttons(heightSize: heightSize, widthSize: widthSize,productId: product['id'],)
+                 BottomButtons(heightSize: heightSize, widthSize: widthSize,product: product)
 
                ],
              );
@@ -136,11 +138,6 @@ class appbar extends StatelessWidget {
                                     ? SvgPicture.asset('assets/icons/hearted.svg')
                                     : SvgPicture.asset('assets/icons/unhearted.svg');
                               }
-                              else if(state is NotLoggedInState){
-                                return state.favorites.contains(product['id'])
-                                    ? SvgPicture.asset('assets/icons/hearted.svg')
-                                    : SvgPicture.asset('assets/icons/unhearted.svg');
-                              }
                               else if(state is FavoriteLoadingState){
                                 return CircularProgressIndicator();
                               }
@@ -157,17 +154,17 @@ class appbar extends StatelessWidget {
   }
 }
 
-class bottom_buttons extends StatelessWidget {
-  const bottom_buttons({
+class BottomButtons extends StatelessWidget {
+  const BottomButtons({
     super.key,
     required this.heightSize,
     required this.widthSize,
-    required this.productId
+    required this.product
   });
 
   final double heightSize;
   final double widthSize;
-  final String productId;
+  final Map<String,dynamic> product;
 
   @override
   Widget build(BuildContext context) {
@@ -178,11 +175,11 @@ class bottom_buttons extends StatelessWidget {
         children: [
           GestureDetector(
             onTap: () {
-              context.read<CartBloc>().add(ToggleCartEvent(productId));
+              context.read<CartBloc>().add(AddCartEvent(product['id']));
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Mehsul sebete elave olundu !'), // The message to display
-                  duration: Duration(milliseconds: 3000), // How long to show the snackbar (optional)
+                  duration: Duration(milliseconds: 2300), // How long to show the snackbar (optional)
                   action: SnackBarAction( // An optional action button
                     label: 'Sebete get',
                     onPressed: () {
@@ -199,10 +196,10 @@ class bottom_buttons extends StatelessWidget {
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   color: Colors.white,
-                  border: Border.all(color: Colors.black, width: 0.6)),
+                  ),
               child: Padding(
                 padding: const EdgeInsets.all(14.0),
-                child: SvgPicture.asset("assets/icons/card.svg"),
+                child: Icon(Icons.shopping_cart,size: 38,),
               ),
             ),
           ),
@@ -215,7 +212,7 @@ class bottom_buttons extends StatelessWidget {
                 height: 80,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
-                  color: Color(0xFF25D366),
+                  color: mainGreen,
                 ),
                 child: Center(
                   child: Text(
@@ -364,7 +361,7 @@ class description extends StatelessWidget {
                   return Container(
                       clipBehavior: Clip.antiAlias,
                       decoration: ShapeDecoration(
-                        color: Color(0xFF25D366),
+                        color: mainGreen,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(18),
                         ),
