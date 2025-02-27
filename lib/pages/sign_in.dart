@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:whatshop/Auth/auth_repository.dart';
+import 'package:whatshop/Auth/auth_service.dart';
 import 'package:whatshop/pages/first_page.dart';
-import 'package:whatshop/pages/home_page.dart';
-import 'package:whatshop/Auth/sign_up.dart';
+import 'package:whatshop/pages/sign_up.dart';
 import 'package:whatshop/tools/colors.dart';
+import 'package:whatshop/tools/navigation_menu.dart';
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
 
@@ -49,7 +49,7 @@ class _SecondPageState extends State<SecondPage> {
                 child: Column(
                   children: [
                     Text(
-                      'Xosh Gelmisiniz',
+                      'Xoş Gəlmisiniz',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Color(0xFF1E1E1E),
@@ -61,7 +61,7 @@ class _SecondPageState extends State<SecondPage> {
                     ),
                     SizedBox(height: heightSize * 0.005,),
                     Text(
-                      'Hesabiniza giris edin',
+                      'Hesabınıza giriş edin',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Color(0x7F1E1E1E),
@@ -80,7 +80,7 @@ class _SecondPageState extends State<SecondPage> {
               SizedBox(height: heightSize * 0.015,),
               Stack(
                   children:[
-                    InputField(prefixIcon: Icon(Icons.lock), labelText: "Sifre", inputType: TextInputType.visiblePassword , hidden: !isHidden,
+                    InputField(prefixIcon: Icon(Icons.lock), labelText: "Şifrə", inputType: TextInputType.visiblePassword , hidden: !isHidden,
                     controller: _passwordController,),
                     Positioned(
                         top: heightSize*0.005,
@@ -122,7 +122,7 @@ class _SecondPageState extends State<SecondPage> {
                       ],
                     ),
                     Text(
-                      'Sifreni Unutmusunuz?',
+                      'Şifrəni Unutmusunuz?',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Color(0xFFFF1418),
@@ -200,11 +200,10 @@ class _SecondPageState extends State<SecondPage> {
              GetStarted(clicked: ()async{
                String email = _emailController.text.trim();
                String password = _passwordController.text.trim();
-               await AuthRepository.signIn(email, password);
-               if(AuthRepository.isSignedIn){
-
+               await AuthService().signInWithEmailAndPassword(email, password);
+               if(AuthService.isSignedIn){
                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-                   return HomePage();
+                   return NavigationMenu();
                  }));
                }
                else{
@@ -229,19 +228,23 @@ class _SecondPageState extends State<SecondPage> {
              }, width: widthSize*0.9, height: heightSize*0.08,insideText: "Giris edin",),
 
               Container(
+                width: widthSize,
                 margin: EdgeInsets.only(top: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'Hesabiniz yoxdur?',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Color(0x991E1E1E),
-                        fontSize: 18,
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w400,
-                        height: 0,
+                    SizedBox(
+                      width:widthSize*0.6,
+                      child: Text(
+                        'WhatShop-da satıcı olmaq istəyirsiniz?',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Color(0x991E1E1E),
+                          fontSize: 18,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w400,
+                          height: 0,
+                        ),
                       ),
                     ),
                     SizedBox(width: 10,),
@@ -250,7 +253,7 @@ class _SecondPageState extends State<SecondPage> {
                         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>SignUp()));
                       },
                       child: Text(
-                        'Qeydiyyatdan kecin',
+                        'Bizə qoşulun',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Color(0xFF1479FF),
@@ -278,7 +281,7 @@ class InputField extends StatelessWidget {
   final bool hidden;
   final TextEditingController controller;
 
-   InputField({
+  const InputField({
     super.key ,
     required this.prefixIcon ,
     required this.labelText ,
@@ -297,7 +300,6 @@ class InputField extends StatelessWidget {
     return Container(
 
       width: widthSize*0.89,
-      height: heightSize*0.06,
       clipBehavior: Clip.antiAlias,
       decoration: ShapeDecoration(
         color: bozumsu,
@@ -349,8 +351,8 @@ Stack imgButton(double widthSize, double heightSize, BuildContext context) {
                   shape: OvalBorder(),
                 ),
                 child: IconButton(onPressed: (){
-                  //Navigator.push(context, MaterialPageRoute(builder: (context)=>FirstPage()));
-                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=>FirstPage()));
+                  //Navigator.pop(context);
                 }, icon: SvgPicture.asset('assets/icons/Frame.svg',),
                 )
             ),

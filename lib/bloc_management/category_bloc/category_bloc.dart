@@ -1,8 +1,7 @@
 import 'package:bloc/bloc.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-//events and states
 import 'category_event.dart';
 import 'category_state.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CategoryBloc extends Bloc<CategoryEvent,CategoryState>{
   CategoryBloc() : super(CategoryInitial()){
@@ -15,7 +14,7 @@ class CategoryBloc extends Bloc<CategoryEvent,CategoryState>{
     emit(CategoryLoading()); //emit loading state
 
     try{
-      final categorySnapshot =
+      /*final categorySnapshot =
           await FirebaseFirestore.instance.collection('categories').get();
       final categories = categorySnapshot.docs.map((doc){
         return{
@@ -24,7 +23,10 @@ class CategoryBloc extends Bloc<CategoryEvent,CategoryState>{
           'description':doc['description'],
           'iconPath' : doc['iconPath']
         };
-      }).toList();
+      }).toList();*/
+
+      final categories = await Supabase.instance.client.from('categories').select();
+
       print('fetched the categories');
 
       emit(CategoryLoaded(categories,0));

@@ -1,11 +1,11 @@
 {
-    "name": "whatshop",
-    "short_name": "whatshop",
+    "name": "WhatShop",
+    "short_name": "WhatShop",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Etibarla al , rahat sat",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

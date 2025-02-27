@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../Auth/sign_in.dart';
+import 'sign_in.dart';
 import '../tools/colors.dart';
 class FirstPage extends StatelessWidget {
   const FirstPage({super.key});
@@ -111,7 +111,7 @@ class FirstPage extends StatelessWidget {
     Radius.circular(33),
     ),
     ),),
-      child: Image.asset('assets/images/frame2.png'),
+      child: Image.network('https://storage.googleapis.com/whatshop-5a3f8.firebasestorage.app/frame2.png'),
 
         );
   }

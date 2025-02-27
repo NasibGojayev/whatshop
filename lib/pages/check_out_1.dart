@@ -145,7 +145,7 @@ class CheckOut1 extends StatelessWidget {
                    ): state is AddressLoadingState?  Center(child: CircularProgressIndicator())
                        :state is NoAddressState? Center(
                      child: Text('Catdirilma adresi elave edin'),
-                   ): Text("Addresses could not be loaded")
+                   ): Text((state as AddressErrorState).error)
 
                                );
              }

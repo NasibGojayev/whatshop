@@ -9,7 +9,7 @@ class AddressLoadingState extends AddressState{}
 
 
 class AddressLoadedState extends AddressState{
-  final List<Map<String,String>> addresses;
+  final List<Map<String,dynamic>> addresses;
   AddressLoadedState(this.addresses);
   @override
   List<Object> get props=>[addresses];

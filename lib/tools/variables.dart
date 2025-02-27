@@ -30,7 +30,7 @@ double getChildAspectRatio(BuildContext context) {
   (widthSize < 960) ? 1.1 :
   (widthSize < 1060) ? 1.0 :
   (widthSize < 1200) ? 1.1 :
-  (widthSize < 1300) ? 1.2 : 1.3;
+  (widthSize < 1300) ? 1 : 1;
 }
 
 

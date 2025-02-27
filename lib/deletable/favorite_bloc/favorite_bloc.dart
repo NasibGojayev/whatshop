@@ -1,9 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
+/*
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:whatshop/Auth/auth_repository.dart';
 import 'favorite_event.dart';
 import 'favorite_state.dart';
+import 'package:whatshop/Auth/auth_service.dart';
+
 
 class FavoriteBloc extends Bloc<FavoriteEvent,FavoriteState>{
   FavoriteBloc() : super(FavoriteLoadingState()) {
@@ -16,19 +16,18 @@ class FavoriteBloc extends Bloc<FavoriteEvent,FavoriteState>{
   //---------------------------------------------
 
   List<String> favorites=[];
+  List<Map<String,dynamic>> favoritesProducts=[];
 
-  late User? user;
+  late Customer? user;
    String? userId;
-   DocumentReference? userRef;
 
 
 
 
   Future<void> _getUserData() async{
-     user = await getCurrentUser();
+     user = await AuthService().getCurrentUser();
     if(user != null){
-      userId = user!.uid;
-      userRef =  FirebaseFirestore.instance.collection('Users').doc(userId);
+      userId = user!.id;
     }
     else {
       print('user is null');
@@ -50,10 +49,18 @@ class FavoriteBloc extends Bloc<FavoriteEvent,FavoriteState>{
         return;
       }
 
-      final userDoc = await userRef!.get();
-      if(userDoc.exists){
+      final DocumentSnapshot? userDoc = await userRef?.get();
+      if(userDoc != null && userDoc.exists){
+        favoritesProducts.clear();
+        favorites.clear();
         favorites = List<String>.from(userDoc['favorites']);
-        emit(FavoriteLoadedState(favorites));
+
+        for(var productId in favorites){
+          final productDoc = await FirebaseFirestore.instance.collection('products').where('id',isEqualTo: productId).get().then((value) => value.docs.first.data());
+          favoritesProducts.add(productDoc);
+        }
+
+        emit(FavoriteLoadedState(favorites,favoritesProducts));
         return;
       }
 
@@ -61,12 +68,18 @@ class FavoriteBloc extends Bloc<FavoriteEvent,FavoriteState>{
       emit(FavoriteErrorState("error fetching the favorites : $e"));
     }
   }
-  //----------------------------------------------
+
+
+
+  //-------------------------------------------------
+
   Future<void> _onToggleFavorite(
       ToggleFavoriteEvent event,
       Emitter<FavoriteState> emit) async{
 
     List<String> updatedList = List.from(favorites); // Create the copy *outside* the try-catch
+    List<Map<String,dynamic>> updatedFavoritesProducts = List.from(favoritesProducts);
+
     try{
 
       if(user != null){
@@ -75,6 +88,7 @@ class FavoriteBloc extends Bloc<FavoriteEvent,FavoriteState>{
             'favorites': FieldValue.arrayRemove([event.productId]),
           });
           updatedList.remove(event.productId);
+          updatedFavoritesProducts.removeWhere((product) => product['id'] == event.productId);
 
         }
         else {
@@ -82,19 +96,15 @@ class FavoriteBloc extends Bloc<FavoriteEvent,FavoriteState>{
             'favorites': FieldValue.arrayUnion([event.productId]),
           });
           updatedList.add(event.productId);
+          final productDoc = await FirebaseFirestore.instance.collection('products').where('id',isEqualTo: event.productId).get().then((value) => value.docs.first.data());
+          updatedFavoritesProducts.add(productDoc);
         }
-        emit(FavoriteLoadedState(updatedList));
+        emit(FavoriteLoadedState(updatedList,favoritesProducts));
       }
       else{
-
-        if(updatedList.contains(event.productId)){
-          updatedList.remove(event.productId);
-        }
-        else{
-          updatedList.add(event.productId);
-        }
-
+        emit(FavoriteErrorState("user is null"));
       }
+
 
       favorites = List.from(updatedList); // Update original list as well, if needed
       return;
@@ -106,4 +116,4 @@ class FavoriteBloc extends Bloc<FavoriteEvent,FavoriteState>{
 
 
 
-}
+}*/

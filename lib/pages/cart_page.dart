@@ -3,12 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:whatshop/bloc_management/cart_bloc/cart_bloc.dart';
 import 'package:whatshop/bloc_management/cart_bloc/cart_state.dart';
 import 'package:whatshop/bloc_management/cart_bloc/cart_event.dart';
-import 'package:whatshop/Auth/auth_repository.dart';
-import 'package:whatshop/Auth/sign_in.dart';
-import 'package:whatshop/Auth/signed_in_user.dart';
 import 'package:whatshop/tools/variables.dart';
-import 'package:whatshop/pages/category_page.dart';
-import 'package:whatshop/pages/home_page.dart';
 
 import 'detailed_product_page.dart';
 
@@ -21,9 +16,9 @@ class CartPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Sebet"),
+        title: const Text("Səbətdəki məhsullar"),
       ),
-      body: SafeArea(
+      body: Center(
         child: Column(
           children: [
             Expanded(
@@ -40,7 +35,6 @@ class CartPage extends StatelessWidget {
                 },
               ),
             ),
-            BottomPanel(widthSize: widthSize),
           ],
         ),
       ),
@@ -58,16 +52,14 @@ class CartPage extends StatelessWidget {
           var cartItem = cartState.cart[index];
 
           return Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             mainAxisSize: MainAxisSize.max,
             children: [
               Expanded(
-                child: TextButton(
-                  onPressed: ()=>Navigator.push(context, MaterialPageRoute(builder: (_) => DetailedProductPage(productId: product['id']))),
-                  child: _buildCartItem(product, () {
-                    context.read<CartBloc>().add(DeleteCartEvent(product['id']));
-                  }),
-                ),
+                child: _buildCartItem(context , product, () {
+                  context.read<CartBloc>().add(DeleteCartEvent(product['id']));
+                }),
               ),
               _buildQuantityControls(context, cartItem),
             ],
@@ -77,9 +69,22 @@ class CartPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCartItem(Map<String, dynamic> product, VoidCallback onDelete) {
-    return Item(id: product['id'], icon: Icon(Icons.delete_outline_outlined, size: 30,color: Colors.red,), onPressed: onDelete, image: Image.asset(product['picPath']), name: product['name'], price: product['price']);
+  Widget _buildCartItem(BuildContext context ,Map<String, dynamic> product, VoidCallback onDelete) {
+    return ListTile(
+      leading: TextButton(
+        onPressed: (){
+          Navigator.push(context, MaterialPageRoute(builder: (context)=>DetailedProductPage(product: product,)));
+        },
+          child: Image.network(product['picPath'],width: 70)) ,
+      title: Text(product['name']),
+      subtitle: Text('${product['price']} AZN'),
+      trailing: IconButton(
+        icon: const Icon(Icons.delete, color: Colors.red),
+        onPressed: onDelete,
+      ),
+    );
   }
+
   Widget _buildQuantityControls(BuildContext context, Map<String, dynamic> cartItem) {
     return Column(
       children: [
@@ -91,11 +96,11 @@ class CartPage extends StatelessWidget {
               quantity: cartItem['quantity'] + 1,
             ));
           },
-          icon: const Icon(Icons.add_circle_outline_outlined, size: 30),
+          icon: const Icon(Icons.add_circle_outline_outlined, size: 20),
         ),
         Text(
           '${cartItem['quantity']}',
-          style: const TextStyle(fontSize:40),
+          style: const TextStyle(fontSize: 20),
         ),
         IconButton(
           onPressed: () {
@@ -107,65 +112,9 @@ class CartPage extends StatelessWidget {
               ));
             }
           },
-          icon: const Icon(Icons.remove_circle_outline_outlined, size: 30),
+          icon: const Icon(Icons.remove_circle_outline_outlined, size: 20),
         ),
       ],
-    );
-  }
-}
-
-class BottomPanel extends StatelessWidget {
-  final double widthSize;
-  const BottomPanel({super.key, required this.widthSize});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: widthSize,
-      height: 73,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.5),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, -3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildBottomIcon(context, Icons.home_filled, () => Navigator.push(context, MaterialPageRoute(builder: (_) => HomePage()))),
-          _buildBottomIcon(context, Icons.category, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoryPage()))),
-          _buildBottomIcon(context, Icons.shopping_cart, () {}),
-          _buildBottomIcon(context, Icons.person, () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AuthRepository.isSignedIn
-                    ? const SafeArea(child: Scaffold(body: SignedInUser()))
-                    : Scaffold(body: SafeArea(child: SingleChildScrollView(child: SecondPage()))),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomIcon(BuildContext context, IconData icon, VoidCallback onTap) {
-    return SizedBox(
-      width: widthSize * 0.22,
-      height: 73,
-      child: IconButton(
-        onPressed: onTap,
-        icon: Icon(icon),
-      ),
-
-
-
     );
   }
 }

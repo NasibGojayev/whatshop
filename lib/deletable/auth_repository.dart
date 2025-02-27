@@ -1,3 +1,4 @@
+/*
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -76,7 +77,6 @@ class AuthRepository{
       isSignedIn = true;
 
 
-
       return result.user;
     } catch (e) {
       print(e);
@@ -128,3 +128,4 @@ class Customer{
 
 
 
+*/

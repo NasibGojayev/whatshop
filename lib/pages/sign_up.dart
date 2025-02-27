@@ -2,9 +2,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:whatshop/Auth/auth_repository.dart';
-import 'package:whatshop/Auth/sign_in.dart';
-import '../pages/first_page.dart';
+import 'package:whatshop/Auth/auth_service.dart';
+import 'package:whatshop/pages/sign_in.dart';
+import 'first_page.dart';
 import '../tools/colors.dart';
 
 class SignUp extends StatelessWidget {
@@ -136,7 +136,9 @@ class _ThirdPageState extends State<ThirdPage> {
                       ),
                     ),
                     TextButton(
-                      onPressed: AuthRepository.signInWithGoogle,
+                      onPressed: (){
+                        //AuthRepository.signInWithGoogle
+                      },
                       child: Container(
                         margin: EdgeInsets.only(right: 14),
                         width: 30,
@@ -169,11 +171,12 @@ class _ThirdPageState extends State<ThirdPage> {
               SizedBox(height: heightSize*0.02,),
               GetStarted(
                 clicked: () async{
+                  print('qeydiyyat helelik baglidir');
                   String email = _emailController.text.trim();
                   String password = _passwordController.text.trim();
                   String name = _nameController.text.trim();
-                   await AuthRepository.signUp(email,password,name);
-                 if(AuthRepository.isSignedUp){
+                   await AuthService().signUpWithEmailAndPassword(Customer( name: name, password: password, email: email));
+                 if(AuthService.isSignedUp){
                    Navigator.pushReplacement(context,
                        MaterialPageRoute(builder: (context) => WelcomePage()));
                  }
@@ -224,8 +227,8 @@ class _ThirdPageState extends State<ThirdPage> {
           ),
           child: IconButton(
             onPressed: () {
-              //Navigator.push(context, MaterialPageRoute(builder: (context)=>FirstPage()));
-              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (context)=>FirstPage()));
+              //Navigator.pop(context);
             },
             icon: SvgPicture.asset(
               'assets/icons/Frame.svg',

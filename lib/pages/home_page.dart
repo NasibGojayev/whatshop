@@ -1,23 +1,15 @@
+import 'package:whatshop/bloc_management/favorite_bloc/favorite_cubit.dart';
 import 'package:whatshop/bloc_management/product_bloc/product_event.dart';
-import 'package:whatshop/pages/cart_page.dart';
 import 'package:whatshop/tools/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:whatshop/Auth/auth_repository.dart';
-import 'package:whatshop/Auth/signed_in_user.dart';
 import 'package:whatshop/bloc_management/category_bloc/category_bloc.dart';
 import 'package:whatshop/bloc_management/category_bloc/category_event.dart';
 import 'package:whatshop/bloc_management/category_bloc/category_state.dart';
-import 'package:whatshop/bloc_management/favorite_bloc/favorite_bloc.dart';
-import 'package:whatshop/bloc_management/favorite_bloc/favorite_state.dart';
 import 'package:whatshop/bloc_management/product_bloc/product_bloc.dart';
 import 'package:whatshop/bloc_management/product_bloc/product_state.dart';
-import 'package:whatshop/pages/category_page.dart';
 import 'package:whatshop/pages/detailed_product_page.dart';
-import 'package:whatshop/Auth/sign_in.dart';
-
-import '../bloc_management/favorite_bloc/favorite_event.dart';
 import '../tools/colors.dart';
 
 class HomePage extends StatelessWidget {
@@ -25,6 +17,8 @@ class HomePage extends StatelessWidget {
 
   final ScrollController scrollController = ScrollController();
   final SearchController searchController = SearchController();
+
+  HomePage({super.key});
 
   void scrollControllerListener(){
     if(scrollController.offset>=scrollController.position.maxScrollExtent
@@ -36,12 +30,13 @@ class HomePage extends StatelessWidget {
   @override
 
   Widget build(BuildContext context) {
-    double widthSize = getWidthSize(context);
+    //double widthSize = getWidthSize(context);
     //double heightSize = getHeightSize(context);
     int crossAxisCount = getCrossAxisCount(context);
     double childAspectRatio = getChildAspectRatio(context);
     String categoryId = "0";
     return Scaffold(
+
       resizeToAvoidBottomInset: true,
       body: SafeArea(
           child: Column(
@@ -129,30 +124,24 @@ class HomePage extends StatelessWidget {
                                   onTap: (){
                                     Navigator.push(context, MaterialPageRoute(builder:
                                         (context)=>DetailedProductPage(
-                                      productId: product['id'],)));
+                                      product: product,)));
                                   },
+
                                   child:  Item(
                                           id: product['id'],
                                           onPressed: (){
-                                            context.read<FavoriteBloc>().add(ToggleFavoriteEvent(product['id']));
+                                            context.read<FavoriteCubit>().toggleFavorite(product);
                                           },
-                                          image: Image.asset(product['picPath']),
+                                          image: Image.network("${product['picPath']}"),
                                           name: product['name'],
                                           price: product['price'],
-                                          icon: BlocBuilder<FavoriteBloc,FavoriteState>(
+                                          icon: BlocBuilder<FavoriteCubit,List<Map<String,dynamic>>>(
                                               builder: (context,state){
-                                                if(state is FavoriteLoadedState){
-                                                 return state.favorites.contains(product['id'])
-                                                      ? SvgPicture.asset('assets/icons/hearted.svg')
-                                                      : SvgPicture.asset('assets/icons/unhearted.svg');
+                                                 return state.any((element) => element['id']==product['id'])
+                                                      ? Icon(Icons.check_box,color: mainGreen,size: 30,)
+                                                      : Icon(Icons.check_box_outline_blank,size: 30,);
                                                 }
-                                                else if(state is FavoriteLoadingState){
-                                                  return Center(child: CircularProgressIndicator(),);
-                                                }
-                                                else{
-                                                  return Text("error");
-                                                }
-                                              }),
+                                              ),
                                        )
 
 
@@ -177,13 +166,6 @@ class HomePage extends StatelessWidget {
                       )
 
               ),
-
-              Container(
-
-                width: widthSize,
-                height: 73,
-                child: BottomPanel(widthSize: widthSize),
-              )
             ],
 
           )),
@@ -330,64 +312,6 @@ class Category extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class BottomPanel extends StatelessWidget {
-  final double widthSize;
-  const BottomPanel({super.key, required this.widthSize});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: widthSize,
-      height: 73,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.5),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, -3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildBottomIcon(context, Icons.home_filled, () {}),
-          _buildBottomIcon(context, Icons.category, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoryPage()))),
-          _buildBottomIcon(context, Icons.shopping_cart, () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const CartPage()));
-          }),
-          _buildBottomIcon(context, Icons.person, () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AuthRepository.isSignedIn
-                    ? const SafeArea(child: Scaffold(body: SignedInUser()))
-                    : Scaffold(body: SafeArea(child: SingleChildScrollView(child: SecondPage()))),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomIcon(BuildContext context, IconData icon, VoidCallback onTap) {
-    return SizedBox(
-      width: widthSize * 0.22,
-      height: 73,
-      child: IconButton(
-        onPressed: onTap,
-        icon: Icon(icon),
-      ),
-
-
-
     );
   }
 }

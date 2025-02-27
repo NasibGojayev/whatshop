@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:whatshop/bloc_management/favorite_bloc/favorite_bloc.dart';
-import 'package:whatshop/bloc_management/favorite_bloc/favorite_event.dart';
-import 'package:whatshop/bloc_management/favorite_bloc/favorite_state.dart';
+import 'package:whatshop/bloc_management/favorite_bloc/favorite_cubit.dart';
+
 import 'package:whatshop/bloc_management/product_bloc/product_bloc.dart';
 import 'package:whatshop/bloc_management/product_bloc/product_state.dart';
 import 'package:whatshop/pages/check_out_1.dart';
@@ -12,10 +11,10 @@ import '../bloc_management/cart_bloc/cart_event.dart';
 import '../tools/colors.dart';
 import 'cart_page.dart';
 class DetailedProductPage extends StatelessWidget {
-  final String productId;
-  DetailedProductPage(
+  final Map<String, dynamic> product;
+  const DetailedProductPage(
       {super.key,
-      required this.productId,
+      required this.product,
       });
 
   @override
@@ -32,9 +31,7 @@ class DetailedProductPage extends StatelessWidget {
         builder: (context,state) {
 
            if(state is ProductLoadedState){
-             final product = state.products.firstWhere(
-                   (p) => p['id'] == productId
-             );
+
              return Column(
                children: [
                  Expanded(
@@ -48,8 +45,8 @@ class DetailedProductPage extends StatelessWidget {
                              color: bozumsu,
                              width: widthSize * 0.7,
                              height: heightSize * 0.32,
-                             child: Image.asset(product['picPath']),
-                           ),
+                             child: Image.network(product['picPath']),
+                           )
                          ),
                          description(widthSize: widthSize, product: product, heightSize: heightSize),
                        ],
@@ -128,24 +125,17 @@ class appbar extends StatelessWidget {
                       ),
                       child: IconButton(
                         onPressed: () {
-                          context.read<FavoriteBloc>().add(ToggleFavoriteEvent(product['id']));
+                          context.read<FavoriteCubit>().toggleFavorite(product);
 
                         },
-                        icon: BlocBuilder<FavoriteBloc,FavoriteState>(
+                        icon: BlocBuilder<FavoriteCubit,List<Map<String,dynamic>>>(
                             builder: (context,state){
-                              if(state is FavoriteLoadedState){
-                                return state.favorites.contains(product['id'])
-                                    ? SvgPicture.asset('assets/icons/hearted.svg')
-                                    : SvgPicture.asset('assets/icons/unhearted.svg');
-                              }
-                              else if(state is FavoriteLoadingState){
-                                return CircularProgressIndicator();
-                              }
-                              else{
-                                print((state as FavoriteErrorState).error);
-                                return Text('error');
-                              }
-                            })
+                              return state.any((item)=>item['id']==product['id'])
+                                  ? Icon(Icons.check_box,color: mainGreen,)
+                                  : Icon(Icons.check_box_outline_blank);
+                            }
+
+                            )
                       ))
 
         ],

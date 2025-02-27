@@ -1,9 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 
-/*abstract class UserState extends Equatable{
-  @override
-  List<Object> get props=>[];
-}*/
+
+import 'package:whatshop/Auth/auth_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract class UserState {}
 

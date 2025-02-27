@@ -15,7 +15,7 @@ class CategoryLoaded extends CategoryState{
 
   final List<Map<String,dynamic>> categories;
   final int selectedIndex;
-  CategoryLoaded(this.categories,this.selectedIndex);
+  const CategoryLoaded(this.categories,this.selectedIndex);
 
   @override
 
@@ -25,7 +25,7 @@ class CategoryLoaded extends CategoryState{
 class CategoryError extends CategoryState{
 
   final String message;
-  CategoryError(this.message);
+  const CategoryError(this.message);
 
   @override
   List<Object?> get props => [message];

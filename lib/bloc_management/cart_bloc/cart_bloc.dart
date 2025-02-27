@@ -1,9 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:whatshop/Auth/auth_repository.dart';
 import 'cart_event.dart';
 import 'cart_state.dart';
+import 'package:whatshop/Auth/auth_service.dart';
+
+
 
 class CartBloc extends Bloc<CartEvent, CartState> {
   CartBloc() : super(CartLoadingState()) {
@@ -17,27 +17,20 @@ class CartBloc extends Bloc<CartEvent, CartState> {
   List<Map<String, dynamic>> cart = [];
   List<Map<String, dynamic>> cartProducts = [];
 
-  late User? user;
+  late Customer? user;
   String? userId;
-  DocumentReference? userRef;
 
   Future<void> _initialize() async {
     await _getUserData();
   }
 
   Future<void> _getUserData() async {
-    user = await getCurrentUser();
-    if (user != null) {
-      userId = user!.uid;
-      userRef = FirebaseFirestore.instance.collection('Users').doc(userId);
-    } else {
-      //emit(CartErrorState("User is not logged in"));
-    }
+
   }
 
   Future<void> _onFetchCart(FetchCartEvent event, Emitter<CartState> emit) async {
     emit(CartLoadingState());
-    try {
+    /*try {
       if (user == null) {
         emit(CartErrorState("User is not logged in"));
         return;
@@ -72,18 +65,19 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       }
     } catch (e) {
       emit(CartErrorState("Error fetching the cart: $e"));
-    }
+    }*/
   }
 
   Future<void> _onAddCart(AddCartEvent event, Emitter<CartState> emit) async {
     List<Map<String, dynamic>> addedCart = List.from(cart);
     List<Map<String, dynamic>> addedCartProducts = List.from(cartProducts);
 
-    try {
+    /*try {
       if (user != null) {
         bool productExists = addedCart.any((product) => product['productId'] == event.productId);
 
         if (productExists) {
+          print('artiq sebetdedir');
           emit(CartLoadedState(addedCart, addedCartProducts));
           return;
         } else {
@@ -112,31 +106,13 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       }
     } catch (e) {
       emit(CartErrorState("Could not add to cart: $e"));
-    }
+    }*/
   }
 
   Future<void> _onDeleteCart(DeleteCartEvent event, Emitter<CartState> emit) async {
     List<Map<String, dynamic>> deletedCart = List.from(cart);
     List<Map<String, dynamic>> deletedCartProducts = List.from(cartProducts);
 
-    try {
-      if (user != null) {
-        deletedCart.removeWhere((product) => product['productId'] == event.productId);
-        deletedCartProducts.removeWhere((product) => product['id'] == event.productId);
-
-        await userRef!.update({
-          'cart': deletedCart,
-        });
-
-        cart = List.from(deletedCart);
-        cartProducts = List.from(deletedCartProducts);
-        emit(CartLoadedState(deletedCart, deletedCartProducts));
-      } else {
-        emit(CartErrorState("User is not logged in"));
-      }
-    } catch (e) {
-      emit(CartErrorState("Could not delete from cart: $e"));
-    }
   }
 
 
@@ -162,15 +138,14 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           };
 
           // Update Firestore
-          await userRef!.update({'cart': updatedCart});
 
           // Update local state
           cart = updatedCart;
 
           // Find corresponding product in cartProducts
-          final productIndex = cartProducts.indexWhere(
-                  (product) => product['id'] == event.productId
-          );
+          // final productIndex = cartProducts.indexWhere(
+          //         (product) => product['id'] == event.productId
+          // );
 
           // Emit new state with updated data
           emit(CartLoadedState(

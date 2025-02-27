@@ -1,167 +1,123 @@
 import 'package:flutter/cupertino.dart';
-import 'package:whatshop/Auth/auth_repository.dart';
+import 'package:hive/hive.dart';
 import 'address_event.dart';
 import 'address_state.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:whatshop/Auth/auth_service.dart';
 
-class AddressBloc extends Bloc<AddressEvent,AddressState>{
-  AddressBloc() : super(AddressLoadingState()){
+class AddressBloc extends Bloc<AddressEvent, AddressState> {
+  AddressBloc() : super(AddressLoadingState()) {
     on<AddAddressEvent>(_onAddAddress);
     on<DeleteAddressEvent>(_onDeleteAddress);
     on<FetchAddressEvent>(_onFetchAddress);
     on<ShowAddAddressDialog>(_onShowAddAddressDialog);
   }
-  //--------------------------------------------
 
-   List<Map<String,String>> addresses =[];
-   User? user;
-   String? userId;
-   DocumentReference? userDocRef;
-
-  Future<void> _getUserData() async{
-
-      user = await getCurrentUser();
-      if(user != null){
-        userId = user!.uid;
-        userDocRef =  FirebaseFirestore.instance.collection('Users').doc(userId);
-      }
-      else if(user == null) {
-        print('user null du');
-      }
-
-  }
+  List<Map<String, dynamic>> addresses = [];
 
 
+
+
+String? userId = AuthService().cachedUser?.id;
+  // Function to store address in Hive
   Future<void> _onAddAddress(
       AddAddressEvent event,
-      Emitter<AddressState> emit
-      )async {
-    _getUserData();
-    List<Map<String,String>> updatedAddresses = List.from(addresses);
-    if(userDocRef == null){
-      emit(AddressErrorState("User not logged in"));
-      return;
-    }
+      Emitter<AddressState> emit,
+      ) async {
 
-    try{
-      updatedAddresses.add({'line1':event.line1,'line2':event.line2,'ad_soyad':event.ad_soyad,'phone_num':event.phone_num});
-      addresses = List.from(updatedAddresses);
-      /*await userDocRef!.update({
-          'addresses':FieldValue.arrayUnion([
-            {'line1': event.line1, 'line2': event.line2}
-          ])
-        });*/
-      await userDocRef!.update({'addresses': updatedAddresses});
-      emit(AddressLoadedState(updatedAddresses));
-      }catch(e){
-        print("Error adding address: $e");
-        emit(AddressErrorState("error $e"));
-      }
+    if (userId == null) return;
 
+    List<Map<String, dynamic>> updatedAddresses = List.from(addresses);
+    var box = Hive.box('userAddresses');
+
+    // Store address in Hive
+    await box.put(userId, event.address.toMap());
+    updatedAddresses.add(event.address.toMap());
+
+    emit(AddressLoadedState(updatedAddresses));
+    addresses = List.from(updatedAddresses);
   }
-  //--------------------------------------------------
+
+  // Function to delete address
   Future<void> _onDeleteAddress(
       DeleteAddressEvent event,
-      Emitter<AddressState> emit
-      )async {
-    _getUserData();
-    if( userDocRef == null){
-      emit(AddressErrorState("user not logged in"));
-    }
+      Emitter<AddressState> emit,
+      ) async {
+    if (userId == null) return;
 
-    try{
-      if(event.index >= 0 && event.index<addresses.length) {
-        List<Map<String, String>> updatedAddresses = List.from(addresses);
-        updatedAddresses.removeAt(event.index);
-        addresses = List.from(updatedAddresses);
-        await userDocRef!.update({'addresses': updatedAddresses});
-
-        emit(AddressLoadedState(updatedAddresses));
-      }
-      else {
-        emit(AddressErrorState("Invalid address index"));
-      }
-    }catch(e){
-      emit(AddressErrorState("error deleting the address $e"));
+    try {
+      var box = Hive.box('userAddresses');
+      await box.delete(userId);
+      emit(NoAddressState());
+    } catch (e) {
+      emit(AddressErrorState("Error deleting address: $e"));
     }
   }
-  //--------------------------------------------------
+
+  // Function to fetch addresses
   Future<void> _onFetchAddress(
       FetchAddressEvent event,
-      Emitter<AddressState> emit
-      ) async{
+      Emitter<AddressState> emit,
+      ) async {
     emit(AddressLoadingState());
-    await _getUserData();
-    if(userDocRef==null){
-      emit(AddressErrorState("user not logged in"));
-      return;
-    }
-    try{
-      final userDocSnapshot = await userDocRef!.get();
-      if(userDocSnapshot.exists){
-        final userData = userDocSnapshot.data() as Map<String,dynamic>?;
-        
-        if(userData != null && userData.containsKey('addresses')){
-          addresses = (userData['addresses'] as List).map((e)=>Map<String,String>.from(e)).toList();
-          emit(AddressLoadedState(addresses));
-        }
-        else{
-          emit(NoAddressState());
-        }
 
+    if (userId == null) return;
+
+    try {
+      final List<Map<String, dynamic>> updatedAddresses = List.from(addresses);
+      var box = Hive.box('userAddresses');
+
+      if (box.containsKey(userId)) {
+        final Map<String, dynamic> addressData = Map<String, dynamic>.from(box.get(userId));
+        final UserAddress address = UserAddress.fromMap(addressData);
+        updatedAddresses.add(address.toMap());
+
+        addresses = List.from(updatedAddresses);
+        emit(AddressLoadedState(updatedAddresses));
+      } else {
+        emit(NoAddressState());
       }
-      else{
-        emit(AddressErrorState('User Document SNP does not exist'));
-      }
-
-    }catch(e){
-      emit(AddressErrorState("couldn't fetch the address $e"));
+    } catch (e) {
+      print(e);
+      emit(AddressErrorState("Couldn't fetch the address: $e"));
     }
-
-
   }
 
-
+  // Function to show the Add Address dialog
   void _onShowAddAddressDialog(
       ShowAddAddressDialog event,
-      Emitter<AddressState> emit
+      Emitter<AddressState> emit,
       ) {
-    TextEditingController ad_soyad = TextEditingController();
-    TextEditingController phone_number = TextEditingController();
-    TextEditingController addressLine1 = TextEditingController();
-    TextEditingController addressLine2 = TextEditingController();
+    TextEditingController adSoyadController = TextEditingController();
+    TextEditingController phoneNumberController = TextEditingController();
+    TextEditingController addressLine1Controller = TextEditingController();
+    TextEditingController addressLine2Controller = TextEditingController();
 
     showCupertinoDialog(
       context: event.context,
       builder: (context) {
         return CupertinoAlertDialog(
-
           title: Text("Adres əlavə et"),
           content: SingleChildScrollView(
             child: Column(
               children: [
                 CupertinoTextField(
-
-                  controller: ad_soyad..text="${user!.displayName}",
+                  controller: adSoyadController..text ,
                   placeholder: 'Ad Soyad',
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 10),
                 CupertinoTextField(
-                  controller: phone_number,
-                  placeholder: 'Telefon nomresi',
+                  controller: phoneNumberController,
+                  placeholder: 'Telefon nömrəsi',
                 ),
-                SizedBox(height: 20),
-
+                SizedBox(height: 10),
                 CupertinoTextField(
-
-                  controller: addressLine1,
+                  controller: addressLine1Controller,
                   placeholder: 'Adres sətiri 1',
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 10),
                 CupertinoTextField(
-                  controller: addressLine2,
+                  controller: addressLine2Controller,
                   placeholder: 'Adres sətiri 2',
                 ),
               ],
@@ -172,15 +128,20 @@ class AddressBloc extends Bloc<AddressEvent,AddressState>{
               isDestructiveAction: true,
               child: Text('İmtina et'),
               onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop();
               },
             ),
             CupertinoDialogAction(
               child: Text("Əlavə et"),
               onPressed: () {
-                if (addressLine1.text.isNotEmpty) {
-
-                  context.read<AddressBloc>().add(AddAddressEvent(addressLine1.text, addressLine2.text,ad_soyad.text,phone_number.text));
+                if (addressLine1Controller.text.isNotEmpty) {
+                  UserAddress address = UserAddress(
+                    nameSurname: adSoyadController.text,
+                    line1: addressLine1Controller.text,
+                    line2: addressLine2Controller.text,
+                    phoneNum: phoneNumberController.text,
+                  );
+                  context.read<AddressBloc>().add(AddAddressEvent(address));
                   Navigator.of(context).pop();
                 }
               },
@@ -190,5 +151,39 @@ class AddressBloc extends Bloc<AddressEvent,AddressState>{
       },
     );
   }
+}
 
+// Model for UserAddress
+class UserAddress {
+  final String nameSurname;
+  final String line1;
+  final String line2;
+  final String phoneNum;
+
+  UserAddress({
+    required this.nameSurname,
+    required this.line1,
+    required this.line2,
+    required this.phoneNum,
+  });
+
+  // Convert object to Map (for Hive storage)
+  Map<String, dynamic> toMap() {
+    return {
+      'name': nameSurname,
+      'line1': line1,
+      'line2': line2,
+      'phone_num': phoneNum,
+    };
+  }
+
+  // Convert Map to UserAddress (for Hive retrieval)
+  factory UserAddress.fromMap(Map<String, dynamic> map) {
+    return UserAddress(
+      nameSurname: map['name'] ?? '',
+      line1: map['line1'] ?? '',
+      line2: map['line2'] ?? '',
+      phoneNum: map['phone_num'] ?? '',
+    );
+  }
 }

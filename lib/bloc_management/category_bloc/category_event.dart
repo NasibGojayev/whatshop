@@ -14,8 +14,9 @@ class FetchCategories extends CategoryEvent{}
 class SetSelectedIndex extends CategoryEvent{
   final int newIndex;
 
-  SetSelectedIndex(this.newIndex);
+  const SetSelectedIndex(this.newIndex);
 
   @override
   List<Object?> get props => [newIndex];
+
 }

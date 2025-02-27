@@ -16,9 +16,11 @@ class FavoriteLoadingState extends FavoriteState{}
 
 class FavoriteLoadedState extends FavoriteState{
   final List<String> favorites;
-  FavoriteLoadedState(this.favorites);
+  final List<Map<String,dynamic>> favoriteProducts;
+  FavoriteLoadedState(this.favorites,this.favoriteProducts);
+
   @override
-  List<Object> get props => [favorites];
+  List<Object> get props => [favorites,favoriteProducts];
 }
 class FavoriteErrorState extends FavoriteState{
   final String error;

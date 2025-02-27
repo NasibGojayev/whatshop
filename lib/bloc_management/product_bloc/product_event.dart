@@ -7,13 +7,6 @@ abstract class ProductEvent extends Equatable{
 
 // class FetchProductsEvent extends ProductEvent{}
 
-class FetchNextProductsEvent extends ProductEvent{
-  final String categoryId;
-  FetchNextProductsEvent(this.categoryId);
-  @override
-  List<Object> get props =>[categoryId];
-}
-
 class FetchByCategoryEvent extends ProductEvent{
   final String categoryId;
   FetchByCategoryEvent(this.categoryId);
@@ -21,3 +14,10 @@ class FetchByCategoryEvent extends ProductEvent{
   List<Object> get props =>[categoryId];
 }
 
+
+class FetchNextProductsEvent extends ProductEvent{
+  final String categoryId;
+  FetchNextProductsEvent(this.categoryId);
+  @override
+  List<Object> get props =>[categoryId];
+}

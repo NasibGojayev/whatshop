@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:whatshop/bloc_management/address_bloc/address_bloc.dart';
 
 
 abstract class AddressEvent extends Equatable{
@@ -8,13 +9,10 @@ abstract class AddressEvent extends Equatable{
 }
 
 class AddAddressEvent extends AddressEvent{
-  final String ad_soyad;
-  final String phone_num;
-  final String line1;
-  final String line2;
-  AddAddressEvent(this.line1,this.line2,this.ad_soyad,this.phone_num);
+  UserAddress address;
+  AddAddressEvent(this.address);
   @override
-  List<Object> get props=>[line1,line2,ad_soyad,phone_num];
+  List<Object> get props=>[address];
 }
 class FetchAddressEvent extends AddressEvent{}
 
