@@ -1,0 +1,181 @@
+{
+  "Users": [
+    {
+      "id": "mEatm4nucbMnJT8f16hrpcBtVeW2",
+      "password": "helloworld",
+      "email": "testemail@gmail.com",
+      "name": "test User1",
+      "addresses": [
+        {
+          "ad_soyad": "Admin Account",
+          "phone_num": "ccv",
+          "line2": "xcsd",
+          "line1": "cxx"
+        }
+      ],
+      "cart": [
+        {
+          "productId": "11",
+          "quantity": 4
+        }
+      ]
+    },
+    {
+      "id": "yZtgvilE5LZDfl1YKP1jPQfjODX2",
+      "addresses": [],
+      "favorites": [],
+      "name": "Admin Access",
+      "email": "admin@whatshop.az",
+      "password": "adminadmin",
+      "cart": []
+    }
+  ],
+  "categories": [
+    {
+      "id": "0",
+      "name": "🔥Popular",
+      "description": "Ən çox satılan məhsullar",
+      "iconPath": "assets/icons/0.webp"
+    },
+    {
+      "id": "accessories_00",
+      "name": "Aksesuarlar",
+      "description": "Şəxsi Bəzək Əşyaları və Aksesuarlar",
+      "iconPath": "assets/icons/accessories.webp"
+    },
+    {
+      "id": "clothing_00",
+      "name": "Geyim",
+      "description": "Kişi qadın uşaq geyimləri",
+      "iconPath": "assets/icons/clothes.webp"
+    },
+    {
+      "id": "electronics_00",
+      "name": "Elektronika",
+      "description": "Elektronik məhsullar",
+      "iconPath": "assets/icons/elec__00.webp"
+    },
+    {
+      "id": "shoe_00",
+      "name": "Ayaqqabı",
+      "description": "Kişi qadın uşaq ayaqqabıları",
+      "iconPath": "assets/icons/shoes__00.webp"
+    }
+  ],
+  "products": [
+    {
+      "id": "firstvendor279.jpg",
+      "sizes": [
+        "usaq ucun",
+        "boyuk ucun"
+      ],
+      "created_at": {
+        "_seconds": 1740323642,
+        "_nanoseconds": 453905000
+      },
+      "category": "shoe_00",
+      "stock": "43",
+      "description": "kend colpasindan",
+      "name": "yumurta",
+      "price": 0.8,
+      "picPath": "https://storage.googleapis.com/whatshop-5a3f8.firebasestorage.app/218.jpg"
+    },
+    {
+      "id": "11",
+      "price": 10,
+      "description": "This is a description for Test Product 11.",
+      "created_at": {
+        "_seconds": 1736962527,
+        "_nanoseconds": 10850000
+      },
+      "category": "accessories_00",
+      "sizes": [
+        "usaq ucun",
+        "boyuk ucun"
+      ],
+      "name": "Test Product 11",
+      "picPath": "https://storage.googleapis.com/whatshop-5a3f8.firebasestorage.app/219.jpg"
+    },
+    {
+      "id": "V15B08B",
+      "picPath": "https://storage.googleapis.com/whatshop-5a3f8.firebasestorage.app/firstvendor202.jpg",
+      "sizes": [
+        "usaq ucun",
+        "boyuk ucun"
+      ],
+      "price": 12.1,
+      "name": "aleykum",
+      "description": "this is for test purpose only",
+      "created_at": {
+        "_seconds": 1740493588,
+        "_nanoseconds": 611614000
+      },
+      "category": "shoe_00",
+      "stock": "189"
+    },
+    {
+      "id": "V19DCF2",
+      "picPath": "https://storage.googleapis.com/whatshop-5a3f8.firebasestorage.app/firstvendor202.jpg",
+      "sizes": [
+        "usaq ucun",
+        "boyuk ucun"
+      ],
+      "price": 12.1,
+      "name": "aleykum",
+      "description": "this is for test purpose only",
+      "created_at": {
+        "_seconds": 1740493587,
+        "_nanoseconds": 278495000
+      },
+      "category": "shoe_00",
+      "stock": "189"
+    },
+    {
+      "id": "V14EDFB",
+      "picPath": "https://storage.googleapis.com/whatshop-5a3f8.firebasestorage.app/firstvendor202.jpg",
+      "sizes": [
+        "usaq ucun",
+        "boyuk ucun"
+      ],
+      "price": 12.1,
+      "name": "aleykum",
+      "description": "this is for test purpose only",
+      "created_at": {
+        "_seconds": 1740415498,
+        "_nanoseconds": 862956000
+      },
+      "category": "shoe_00",
+      "stock": "189"
+    },
+    {
+      "id": "V1509EA",
+      "picPath": "https://storage.googleapis.com/whatshop-5a3f8.firebasestorage.app/firstvendor221.jpg",
+      "sizes": [
+        "usaq ucun",
+        "boyuk ucun"
+      ],
+      "name": "hello",
+      "description": "this is for test purpose only",
+      "created_at": {
+        "_seconds": 1740414108,
+        "_nanoseconds": 881089000
+      },
+      "category": "shoe_00",
+      "stock": "189",
+      "price": 12
+    }
+  ],
+  "vendors": [
+    {
+      "id": "aGa9p0kgCmGMTzQtLGkS",
+      "name": "Isa Qasimov",
+      "adress": "3cu sira 5  ci  magaza"
+    },
+    {
+      "id": "euafnWbLSAIoP7pU3TMK",
+      "Ad": "Arif",
+      "Catogry": "Qarisiq",
+      "Nomre": "050461010"
+    }
+  ]
+}

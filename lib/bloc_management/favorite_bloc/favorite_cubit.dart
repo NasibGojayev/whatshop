@@ -19,7 +19,7 @@ class FavoriteCubit extends Cubit<List<Map<String,dynamic>>>{
   void removeFavorite(String productId){
     final updatedFavorites = List<Map<String,dynamic>>.from(state);
 
-    updatedFavorites.removeWhere((product) => product['id'] == productId);
+    updatedFavorites.removeWhere((product) => product['product_id'] == productId);
     emit(updatedFavorites);
   }
 

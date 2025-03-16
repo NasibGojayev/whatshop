@@ -1,8 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 
-
-
 class AuthService{
 
 
@@ -12,11 +10,14 @@ class AuthService{
 
 
    Future<User?> getCurrentUser() async{
+
     AuthService authService = AuthService();
 
-    if(cachedUser!=null) return cachedUser;
+    if(cachedUser!=null)  return cachedUser;
     cachedUser = authService._supabase.auth.currentUser;
+
     return cachedUser;
+
   }
 
   static bool isSignedUp = false;
@@ -97,7 +98,7 @@ class Customer{
   final String? name;
   final String? password;
   final String? email;
-  final List<String> cart;
+  final List<Map<String, dynamic>> cart;
 
   Customer({
     this.cart = const[],

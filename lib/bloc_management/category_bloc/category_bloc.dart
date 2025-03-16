@@ -25,7 +25,7 @@ class CategoryBloc extends Bloc<CategoryEvent,CategoryState>{
         };
       }).toList();*/
 
-      final categories = await Supabase.instance.client.from('categories').select();
+      final categories = await Supabase.instance.client.from('categories').select("*").order('id',ascending: true);
 
       print('fetched the categories');
 

@@ -13,10 +13,15 @@ class ShareCubit extends Cubit<List<XFile>> {
 
   final List<GlobalKey> _productKeys = []; // Store keys for each product
 
-  void initializeKeys(int productCount) {
+  void initializeKeys(List<Map<String, dynamic>> favoriteState) {
     _productKeys.clear();
-    _productKeys.addAll(List.generate(productCount, (index) => GlobalKey()));
+    for (var product in favoriteState) {
+      for (int i = 0; i < product['pic_path'].length; i++) {
+        _productKeys.add(GlobalKey());
+      }
+    }
   }
+
 
   GlobalKey getKey(int index) {
     return _productKeys[index];
@@ -36,7 +41,7 @@ class ShareCubit extends Cubit<List<XFile>> {
         continue;
       }
 
-      ui.Image image = await boundary.toImage(pixelRatio: 30.0);
+      ui.Image image = await boundary.toImage(pixelRatio: 20.0);
       // rotation----------------
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()));
@@ -44,8 +49,7 @@ class ShareCubit extends Cubit<List<XFile>> {
       // Fill the background with white (or any color)
       Paint backgroundPaint = Paint()..color = Colors.white;
       canvas.drawRect(Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()), backgroundPaint);
-      canvas.translate(0, image.height.toDouble());
-      canvas.scale(1,-1);
+
       canvas.drawImage(image, Offset.zero, Paint());
 
       final flippedImage = await recorder.endRecording().toImage(image.width, image.height);

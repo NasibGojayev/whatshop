@@ -1,3 +1,4 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -9,10 +10,11 @@ import 'package:whatshop/pages/check_out_1.dart';
 import '../bloc_management/cart_bloc/cart_bloc.dart';
 import '../bloc_management/cart_bloc/cart_event.dart';
 import '../tools/colors.dart';
+
 import 'cart_page.dart';
 class DetailedProductPage extends StatelessWidget {
   final Map<String, dynamic> product;
-  const DetailedProductPage(
+   DetailedProductPage(
       {super.key,
       required this.product,
       });
@@ -43,9 +45,16 @@ class DetailedProductPage extends StatelessWidget {
                            alignment: Alignment.center,
                            child: Container(
                              color: bozumsu,
-                             width: widthSize * 0.7,
-                             height: heightSize * 0.32,
-                             child: Image.network(product['picPath']),
+                             height: 200,
+
+                             child: CarouselSlider.builder(itemCount: product['pic_path'].length,
+                               itemBuilder: (BuildContext context, int index, int realIndex) {
+                               return Image.network(product['pic_path'][index]);
+
+                             }, options: CarouselOptions(
+
+                               ),
+                               ),
                            )
                          ),
                          description(widthSize: widthSize, product: product, heightSize: heightSize),
@@ -130,7 +139,7 @@ class appbar extends StatelessWidget {
                         },
                         icon: BlocBuilder<FavoriteCubit,List<Map<String,dynamic>>>(
                             builder: (context,state){
-                              return state.any((item)=>item['id']==product['id'])
+                              return state.any((item)=>item['product_id']==product['product_id'])
                                   ? Icon(Icons.check_box,color: mainGreen,)
                                   : Icon(Icons.check_box_outline_blank);
                             }
@@ -165,7 +174,7 @@ class BottomButtons extends StatelessWidget {
         children: [
           GestureDetector(
             onTap: () {
-              context.read<CartBloc>().add(AddCartEvent(product['id']));
+              context.read<CartBloc>().add(AddCartEvent(product));
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Mehsul sebete elave olundu !'), // The message to display

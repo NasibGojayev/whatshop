@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:whatshop/bloc_management/address_bloc/address_bloc.dart';
 
 abstract class AddressState extends Equatable{
   @override
@@ -9,10 +10,11 @@ class AddressLoadingState extends AddressState{}
 
 
 class AddressLoadedState extends AddressState{
-  final List<Map<String,dynamic>> addresses;
-  AddressLoadedState(this.addresses);
+  final List<UserAddress> addresses;
+  final String selectedAddressId;
+  AddressLoadedState(this.addresses,this.selectedAddressId);
   @override
-  List<Object> get props=>[addresses];
+  List<Object> get props=>[addresses,selectedAddressId];
 }
 
 class AddressEmptyState extends AddressState{}

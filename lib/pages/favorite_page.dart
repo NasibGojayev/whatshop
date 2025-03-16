@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:whatshop/pages/detailed_product_page.dart';
 import 'package:whatshop/tools/colors.dart';
 import 'package:whatshop/tools/variables.dart';
-
 import '../bloc_management/favorite_bloc/favorite_cubit.dart';
 import '../bloc_management/favorite_bloc/share_cubit.dart';
 
@@ -30,7 +29,7 @@ class FavoritePage extends StatelessWidget {
       ),
       body: BlocBuilder<FavoriteCubit, List<Map<String, dynamic>>>(
         builder: (context, favoriteState) {
-          context.read<ShareCubit>().initializeKeys(favoriteState.length);
+          context.read<ShareCubit>().initializeKeys(favoriteState);
 
           return ListView.separated(
             separatorBuilder: (context, index) => SizedBox(height: 8),
@@ -59,7 +58,7 @@ class FavoritePage extends StatelessWidget {
                           child: Stack(
                             children: [
                               Image.network(
-                                product['picPath'],
+                                product['pic_path'][0],
                                 width: 70,
                                 height: 70,
                                 fit: BoxFit.fitHeight,
@@ -70,7 +69,7 @@ class FavoritePage extends StatelessWidget {
                                   color: Colors.black54,
                                   padding: EdgeInsets.symmetric(horizontal: 2, vertical: 1),
                                   child: Text(
-                                    'ID: ${product['id']}',
+                                    'ID: ${product['product_id']}',
                                     style: TextStyle(
                                       fontSize: 3,
                                       color: Colors.greenAccent,
@@ -87,7 +86,7 @@ class FavoritePage extends StatelessWidget {
                       trailing: IconButton(
                         icon: Icon(Icons.cancel, color: Colors.red),
                         onPressed: () {
-                          context.read<FavoriteCubit>().removeFavorite(product['id']);
+                          context.read<FavoriteCubit>().removeFavorite(product['product_id']);
                         },
                       ),
                     ),
@@ -101,3 +100,6 @@ class FavoritePage extends StatelessWidget {
     );
   }
 }
+
+
+

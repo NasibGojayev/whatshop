@@ -9,7 +9,8 @@ abstract class ProductEvent extends Equatable{
 
 class FetchByCategoryEvent extends ProductEvent{
   final String categoryId;
-  FetchByCategoryEvent(this.categoryId);
+  final bool forceRefresh;
+  FetchByCategoryEvent(this.categoryId,{this.forceRefresh  = false});
   @override
   List<Object> get props =>[categoryId];
 }
@@ -21,3 +22,4 @@ class FetchNextProductsEvent extends ProductEvent{
   @override
   List<Object> get props =>[categoryId];
 }
+

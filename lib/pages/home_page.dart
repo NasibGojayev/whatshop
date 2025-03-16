@@ -1,5 +1,7 @@
+import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:whatshop/bloc_management/favorite_bloc/favorite_cubit.dart';
 import 'package:whatshop/bloc_management/product_bloc/product_event.dart';
+import 'package:whatshop/tools/custom_search_delegate.dart';
 import 'package:whatshop/tools/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,12 +13,14 @@ import 'package:whatshop/bloc_management/product_bloc/product_bloc.dart';
 import 'package:whatshop/bloc_management/product_bloc/product_state.dart';
 import 'package:whatshop/pages/detailed_product_page.dart';
 import '../tools/colors.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+
 
 class HomePage extends StatelessWidget {
 
-
   final ScrollController scrollController = ScrollController();
   final SearchController searchController = SearchController();
+
 
   HomePage({super.key});
 
@@ -27,147 +31,206 @@ class HomePage extends StatelessWidget {
     }
   }
 
+
+
   @override
 
   Widget build(BuildContext context) {
+
     //double widthSize = getWidthSize(context);
     //double heightSize = getHeightSize(context);
     int crossAxisCount = getCrossAxisCount(context);
     double childAspectRatio = getChildAspectRatio(context);
     String categoryId = "0";
-    return Scaffold(
+    Future<void> _refresh()async {
+      await context.read<ProductBloc>()..add(FetchByCategoryEvent(categoryId,forceRefresh: true));
+      print('now it refreshed');
+    }
+   /* Container(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Row(
+          children: [
+            SvgPicture.asset("assets/icons/logo.svg"),
+            SizedBox(width: 11,),
+            Text(
+              'WhatShop',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xFF1D1E20),
+                fontSize: 28,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w600,
+                height: 0.04,
+                letterSpacing: -0.21,
+              ),
+            ),
+            IconButton(onPressed: (){
+              showSearch(context: context, delegate: ProductSearchDelegate());
+            }, icon: Icon(Icons.search))
+          ],
+        ),
+      ),
+    )*/
 
+    return Scaffold(
+      appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SvgPicture.asset("assets/icons/logo.svg" ),
+        ),
+        title: Text(
+          'WhatShop',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Color(0xFF1D1E20),
+            fontSize: 28,
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+            height: 0.04,
+            letterSpacing: -0.21,
+          ),
+        ),
+        actions: [
+          IconButton(onPressed: (){
+            showSearch(context: context, delegate: ProductSearchDelegate());
+          }, icon: Icon(Icons.search,size: 28,))
+        ],
+
+
+      ),
       resizeToAvoidBottomInset: true,
       body: SafeArea(
-          child: Column(
-            children: [
-              appBar(),
-              Center(child: SearchBar(
-                controller: searchController,
-                padding: const WidgetStatePropertyAll<EdgeInsets>(
-                    EdgeInsets.symmetric(horizontal: 16.0)),
-                onTap: () {
-                  searchController.openView();
-                },
-                onChanged: (_) {
-                  searchController.openView();
-                },
-                leading: const Icon(Icons.search),
-                trailing: <Widget>[
-                  Tooltip(
-                    message: 'Change brightness mode',
-                    child: IconButton(
-                      onPressed: () {
+          child: LiquidPullToRefresh(
+            showChildOpacityTransition: true,
+            height: 70,
+            color: mainGreen,
+            animSpeedFactor: 3,
+            onRefresh: ()async{
+              await _refresh();
+            },
+            child: Column(
+              children: [
+                SizedBox(height: 30,),
 
-                      },
-                      icon: const Icon(Icons.wb_sunny_outlined),
-                      selectedIcon: const Icon(Icons.brightness_2_outlined),
-                    ),
-                  )
-                ],
-              )),
-              Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Container(
-                      height: 40,
-                      child: BlocBuilder<CategoryBloc,CategoryState>(
-                        builder: (context,state) {
-                          if(state is CategoryLoaded){
-                            return ListView.builder(
-                              itemCount: state.categories.length,
-                              scrollDirection: Axis.horizontal,
-                              itemBuilder: (context, index){
+                Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Container(
+                        height: 40,
+                        child: BlocBuilder<CategoryBloc,CategoryState>(
+                          builder: (context,state) {
+                            if(state is CategoryLoaded){
+                              return LiquidPullToRefresh(
+                                onRefresh: ()async{
 
-                                return Category(
-                                  textColor: state.selectedIndex==index?Colors.white:Colors.black,
-                                  color: state.selectedIndex==index?Color(0xFF25D366):bozumsu,
-                                  name: "${state.categories[index]['name']}",
-                                  onPressed: (){
-                                    categoryId = state.categories[index]['id'];
-                                    context.read<CategoryBloc>().add(SetSelectedIndex(index));
-                                    context.read<ProductBloc>().add(FetchByCategoryEvent(categoryId));
-                                  },
-                                );
-                              }
-                              ,
-                            );
+                                  await Future.delayed(Duration(seconds: 2));
+                                },
+                                child: ListView.builder(
+                                  itemCount: state.categories.length,
+                                  scrollDirection: Axis.horizontal,
+                                  itemBuilder: (context, index){
+
+                                    return Category(
+                                      textColor: state.selectedIndex==index?Colors.white:Colors.black,
+                                      color: state.selectedIndex==index?Color(0xFF25D366):bozumsu,
+                                      name: "${state.categories[index]['name']}",
+                                      onPressed: (){
+                                        categoryId = state.categories[index]['id'];
+                                        context.read<CategoryBloc>().add(SetSelectedIndex(index));
+                                        context.read<ProductBloc>().add(FetchByCategoryEvent(categoryId));
+                                      },
+                                    );
+                                  }
+                                  ,
+                                ),
+                              );
+                            }
+                            else {
+
+                              return LinearProgressIndicator();
+                            }
+
                           }
-                          else {
-
-                            return LinearProgressIndicator();
-                          }
-
-                        }
+                        ),
                       ),
                     ),
-                  ),
-              Expanded(
+                Expanded(
 
-                  child: BlocConsumer<ProductBloc,ProductState>(
-                        listener: (context,state){},
-                        builder: (context,state) {
-                          if(state is ProductLoadedState){
-                            return GridView.builder(
-                              controller: scrollController,
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: crossAxisCount,
-                                  crossAxisSpacing: 8.0,
-                                  mainAxisSpacing: 8.0,
-                                  childAspectRatio: childAspectRatio
-                              ),
-                              itemCount: state.products.length,
-                              itemBuilder: (context, index) {
+                    child: BlocConsumer<ProductBloc,ProductState>(
+                          listener: (context,state){},
+                          builder: (context,state) {
+                            if(state is ProductLoadedState){
+                              return GridView.builder(
+                                physics: AlwaysScrollableScrollPhysics(),
+                                controller: scrollController,
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: crossAxisCount,
+                                    crossAxisSpacing: 8.0,
+                                    mainAxisSpacing: 8.0,
+                                    childAspectRatio: childAspectRatio
+                                ),
+                                itemCount: state.products.length,
+                                itemBuilder: (context, index) {
 
-                                final product = state.products[index];
+                                  final product = state.products[index];
 
-                                return GestureDetector(
-                                  onTap: (){
-                                    Navigator.push(context, MaterialPageRoute(builder:
-                                        (context)=>DetailedProductPage(
-                                      product: product,)));
-                                  },
+                                  return GestureDetector(
+                                    onTap: (){
+                                      Navigator.push(context, MaterialPageRoute(builder:
+                                          (context)=>DetailedProductPage(
+                                        product: product,)));
+                                    },
 
-                                  child:  Item(
-                                          id: product['id'],
-                                          onPressed: (){
-                                            context.read<FavoriteCubit>().toggleFavorite(product);
-                                          },
-                                          image: Image.network("${product['picPath']}"),
-                                          name: product['name'],
-                                          price: product['price'],
-                                          icon: BlocBuilder<FavoriteCubit,List<Map<String,dynamic>>>(
-                                              builder: (context,state){
-                                                 return state.any((element) => element['id']==product['id'])
-                                                      ? Icon(Icons.check_box,color: mainGreen,size: 30,)
-                                                      : Icon(Icons.check_box_outline_blank,size: 30,);
-                                                }
-                                              ),
-                                       )
+                                    child:  Item(
+                                            id: product['product_id'],
+                                            onPressed: (){
+                                              context.read<FavoriteCubit>().toggleFavorite(product);
+                                            },
+                                            image: CarouselSlider.builder(itemCount: product['pic_path'].length,
+                                              itemBuilder: (BuildContext context, int index, int realIndex) {
+                                                return Image.network(product['pic_path'][index],fit: BoxFit.fitWidth,width: 300,height: 500,);
+
+                                              }, options: CarouselOptions(
+                                                autoPlay: true
 
 
-                                );
-                              },
-                            );
+                                              ),),
+                                            name: '${product['name']}',
+                                            price: product['price'],
+                                            icon: BlocBuilder<FavoriteCubit,List<Map<String,dynamic>>>(
+                                                builder: (context,state){
+                                                   return state.any((element) => element['product_id']==product['product_id'])
+                                                        ? Icon(Icons.check_box,color: mainGreen,size: 30,)
+                                                        : Icon(Icons.check_box_outline_blank,size: 30,);
+                                                  }
+                                                ),
+                                         )
+
+
+                                  );
+                                },
+                              );
+                            }
+                            else if(state is ProductLoadingState){
+                              return Center(child: CircularProgressIndicator());
+                            }else if(state is ProductErrorState){
+                              return ScaffoldMessenger(child: SnackBar(content: Text('there is an error fetching products')));
+                            }
+                            else if(state is EndOfProductsState) {
+                              print(state);
+                              return Center(child: Text('Heleki mehsul yoxdur , gozlemede qalin ✨'),);
+                            }
+                            else{
+                              print(state);
+                              return Center(child: Text('Gozlenilmeyen xeta bas verdi'),);
+                            }
                           }
-                          else if(state is ProductLoadingState){
-                            return Center(child: CircularProgressIndicator());
-                          }else if(state is ProductErrorState){
-                            return ScaffoldMessenger(child: SnackBar(content: Text('there is an error fetching products')));
-                          }
-                          else if(state is EndOfProductsState) {
-                            print(state);
-                            return Center(child: Text('Heleki mehsul yoxdur , gozlemede qalin ✨'),);
-                          }
-                          else{
-                            print(state);
-                            return Center(child: Text('Gozlenilmeyen xeta bas verdi'),);
-                          }
-                        }
-                      )
+                        )
 
-              ),
-            ],
+                ),
+              ],
 
+            ),
           )),
       );
   }
@@ -175,7 +238,7 @@ class HomePage extends StatelessWidget {
 
 
 
-  Container appBar() {
+  Container appBar(BuildContext context) {
     return Container(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -195,6 +258,9 @@ class HomePage extends StatelessWidget {
                         letterSpacing: -0.21,
                       ),
                     ),
+                    IconButton(onPressed: (){
+                      showSearch(context: context, delegate: ProductSearchDelegate());
+                    }, icon: Icon(Icons.search))
                   ],
                 ),
               ),
@@ -204,7 +270,7 @@ class HomePage extends StatelessWidget {
 
 class Item extends StatelessWidget {
 
-  final Image image;
+  final Widget image;
   final String id;
   final String name;
   final num price;

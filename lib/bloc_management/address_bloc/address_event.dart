@@ -10,18 +10,25 @@ abstract class AddressEvent extends Equatable{
 
 class AddAddressEvent extends AddressEvent{
   UserAddress address;
+
   AddAddressEvent(this.address);
   @override
   List<Object> get props=>[address];
 }
 class FetchAddressEvent extends AddressEvent{}
+class SelectAddressEvent extends AddressEvent{
+  final String addressId;
+  SelectAddressEvent(this.addressId);
+  @override
+  List<Object> get props=>[addressId];
+}
 
 
 class DeleteAddressEvent extends AddressEvent{
-  final int index;
-  DeleteAddressEvent(this.index);
+  final UserAddress address;
+  DeleteAddressEvent(this.address);
   @override
-  List<Object> get props=>[index];
+  List<Object> get props=>[address];
 }
 
 class ShowAddAddressDialog extends AddressEvent{

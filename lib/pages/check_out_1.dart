@@ -5,60 +5,11 @@ import 'package:flutter_svg/svg.dart';
 import 'package:whatshop/bloc_management/address_bloc/address_bloc.dart';
 import 'package:whatshop/bloc_management/address_bloc/address_event.dart';
 import 'package:whatshop/bloc_management/address_bloc/address_state.dart';
-
 import '../tools/colors.dart';
 import 'check_out_2.dart';
 
 class CheckOut1 extends StatelessWidget {
   const CheckOut1({super.key});
-
-  /*void _showAddAddressDialog(BuildContext context){
-    TextEditingController addressLine1 = TextEditingController();
-    TextEditingController addressLine2 = TextEditingController();
-    TextEditingController nameSurname = TextEditingController();
-    TextEditingController phone = TextEditingController();
-
-
-    showCupertinoDialog(context: context, builder: (context){
-      return CupertinoAlertDialog(
-              title: Text("Adres elave et"),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CupertinoTextField(
-                    controller: addressLine1,
-                    placeholder: 'Adres setiri 1',
-                  ),
-                  SizedBox(height: 10,),
-                  CupertinoTextField(
-                    controller: addressLine2,
-                    placeholder: 'Adres setiri 2',
-                  ),
-                ],
-              ),
-              actions: [
-                CupertinoDialogAction(
-                  isDestructiveAction: true,
-                  child: Text('Cancel'),
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close dialog
-                  },
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (addressLine1.text.isNotEmpty) {
-                      context.read<AddressBloc>().add(AddAddressEvent(addressLine1.text, addressLine2.text));
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  child: Text("Elave et"),
-                ),
-              ],
-            );
-
-
-    });
-  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -89,54 +40,70 @@ class CheckOut1 extends StatelessWidget {
                          child: Row(
                            mainAxisAlignment: MainAxisAlignment.spaceAround,
                            children: [
-                             Column(
-                               children: [
-                                 Text(
-                                   'Adres ${index + 1}',
-                                   textAlign: TextAlign.center,
-                                   style: TextStyle(
-                                     color: Color(0xFF1E1E1E),
-                                     fontSize: 13,
-                                     fontFamily: 'Inter',
-                                     fontWeight: FontWeight.w400,
-                                   ),
-                                 ),
-                               // ---
-                                 SizedBox(height: 20,),
-                               // ---
-                                 Text(
-                                   '${address['ad_soyad']}\n'
-                                       '${address['line1']}\n'
-                                       '${address['line2']}\n'
-                                       '${state.addresses[index]['phone_num']}\n',
-                                   style: TextStyle(
-                                     color: Colors.black.withValues(
-                                         alpha: 0.7),
-                                     fontSize: 11,
-                                     fontFamily: 'Inter',
-                                     fontWeight: FontWeight.w400,
-                                   ),
-                                 ),
-                               ],
-                             ),
-                             Column(
-                               children: [
-                                 TextButton(onPressed: (){
-                                   context.read<AddressBloc>().add(DeleteAddressEvent(index));
-                                 }, 
-                                     child: Text('Adresi Sil',
-                                     style: TextStyle(
-                                       color: Colors.red,
+                             Expanded(
 
-                                     ),)),
-                                 
-                                 Container(
-                                   height: heightSize * 0.14,
-                                   width: widthSize * 0.3,
-                                 
-                                   child: Image.asset('assets/images/map.png'),
-                                 ),
-                               ],
+                                 flex: 1,
+                                 child: IconButton(onPressed: (){
+                                   context.read<AddressBloc>().add(SelectAddressEvent(address.address_id));
+                                   print(state.selectedAddressId);
+                                 }, icon: state.selectedAddressId==address.address_id?Icon(Icons.check_box,color: mainGreen,):Icon(Icons.check_box_outline_blank,color: mainGreen))
+                             ),
+                             Expanded(
+                               flex: 5,
+                               child: Column(
+                                 children: [
+                                   Text(
+                                     'Adres ${index + 1}',
+                                     textAlign: TextAlign.center,
+                                     style: TextStyle(
+                                       color: Color(0xFF1E1E1E),
+                                       fontSize: 13,
+                                       fontFamily: 'Inter',
+                                       fontWeight: FontWeight.w400,
+                                     ),
+                                   ),
+                                 // ---
+                                   SizedBox(height: 20,),
+                                 // ---
+                                   Text(
+                                         '${address.address_id}\n'
+                                         '${address.nameSurname}\n'
+                                         '${state.addresses[index].phoneNum}\n'
+                                         '${address.line1}\n'
+                                         '${address.line2}\n'
+                                     ,
+                                     style: TextStyle(
+                                       color: Colors.black.withValues(
+                                           alpha: 0.7),
+                                       fontSize: 11,
+                                       fontFamily: 'Inter',
+                                       fontWeight: FontWeight.w400,
+                                     ),
+                                   ),
+                                 ],
+                               ),
+                             ),
+                             Expanded(
+                               flex: 3,
+                               child: Column(
+                                 children: [
+                                   TextButton(onPressed: (){
+                                     context.read<AddressBloc>().add(DeleteAddressEvent(address));
+                                   },
+                                       child: Text('Adresi Sil',
+                                       style: TextStyle(
+                                         color: Colors.red,
+
+                                       ),)),
+
+                                   Container(
+                                     height: heightSize * 0.14,
+                                     width: widthSize * 0.3,
+
+                                     child: Image.asset('assets/images/map.png'),
+                                   ),
+                                 ],
+                               ),
                              )
                            ],
                          ),
@@ -147,7 +114,7 @@ class CheckOut1 extends StatelessWidget {
                      child: Text('Catdirilma adresi elave edin'),
                    ): Text((state as AddressErrorState).error)
 
-                               );
+               );
              }
            ),
            BlocBuilder<AddressBloc,AddressState>(
@@ -155,24 +122,54 @@ class CheckOut1 extends StatelessWidget {
                return Center(
                  child: TextButton(
                    onPressed: (){
-                     if(state is AddressLoadedState && state.addresses.isNotEmpty){
+                     if(state is AddressLoadedState && state.addresses.isNotEmpty&& state.selectedAddressId !='non'){
                    Navigator.push(context, MaterialPageRoute(builder: (context)=>CheckOut2()));
                      }
                      else{
                        showCupertinoDialog(context: context,
                             builder: (BuildContext context){
-                          return CupertinoAlertDialog(
-                            title: Text('Xeta: Adress qeyd olunmayib'),
-                            content: Text('Adressi qeyd etmek ucun "Yeni adres elave et" e tiklayin'),
-                          actions: [
-                            CupertinoDialogAction(
-                              isDestructiveAction: true,
-                              child: Text('Basa Dusdum'),
-                              onPressed: () {
-                                Navigator.of(context).pop(); // Close dialog
-                              },
-                            ),
-                          ],);
+                          if(state is NoAddressState){
+                            return CupertinoAlertDialog(
+                              title: Text('Xeta: Adress qeyd olunmayib'),
+                              content: Text('Adres elave etmek ucun "Yeni adres elave et" e tiklayin'),
+                              actions: [
+                                CupertinoDialogAction(
+                                  isDestructiveAction: true,
+                                  child: Text('Basa Dusdum'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop(); // Close dialog
+                                  },
+                                ),
+                              ],);
+                          }
+                          else if((state as AddressLoadedState).selectedAddressId =='non'){
+                            return CupertinoAlertDialog(
+                              title: Text('Xeta: Adress qeyd olunmayib'),
+                              content: Text('Davam etmek ucun elave etdiyiniz adreslerden birini secin'),
+                              actions: [
+                                CupertinoDialogAction(
+                                  isDestructiveAction: true,
+                                  child: Text('Basa Dusdum'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop(); // Close dialog
+                                  },
+                                ),
+                              ],);
+                          }
+                          else{
+                            return CupertinoAlertDialog(
+                              title: Text('Xeta: Adresi secerken xeta bas verdi'),
+                              content: Text('zehmet olmasa Whatshopa yeniden daxil olun'),
+                              actions: [
+                                CupertinoDialogAction(
+                                  isDestructiveAction: true,
+                                  child: Text('Basa Dusdum'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop(); // Close dialog
+                                  },
+                                ),
+                              ],);
+                          }
                             });}
 
                      }
@@ -273,12 +270,15 @@ class HeaderAndMore extends StatelessWidget {
                       left: widthSize * 0.02, top: heightSize * 0.01),
                   width: 48,
                   height: 48,
+
                   decoration: ShapeDecoration(
-                    color: bozumsu,
+                    color: Colors.red,
                     shape: OvalBorder(),
                   ),
                   child: IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      context.read<AddressBloc>().add(FetchAddressEvent());
+                    },
                     icon: SvgPicture.asset('assets/icons/options.svg'),
                   )),
             ],
@@ -395,7 +395,8 @@ class HeaderAndMore extends StatelessWidget {
                       fontFamily: 'Inter',
                       fontWeight: FontWeight.w400,
                     ),
-                  )
+                  ),
+
 
                 ],
               ),

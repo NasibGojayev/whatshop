@@ -23,10 +23,10 @@ class UpdateCartQuantityEvent extends CartEvent {
 class FetchCartEvent extends CartEvent{}
 
 class AddCartEvent extends CartEvent{
-  final String productId;
-  AddCartEvent(this.productId);
+  final Map<String,dynamic> product;
+  AddCartEvent(this.product);
   @override
-  List<Object> get props => [productId];
+  List<Object> get props => [product];
 }
 
 class DeleteCartEvent extends CartEvent {

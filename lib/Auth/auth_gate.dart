@@ -8,7 +8,6 @@ AUTH GATE --- THIS WILL CONTUNIOUSLY CHECK IF THE USER IS LOGGED IN OR NOT
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:whatshop/pages/sign_in.dart';
-import 'package:whatshop/pages/first_page.dart';
 import 'package:whatshop/tools/navigation_menu.dart';
 
 class AuthGate extends StatelessWidget {

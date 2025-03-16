@@ -16,6 +16,7 @@ class ProductBloc extends Bloc<ProductEvent,ProductState>{
 
 
 
+
   Future<void> _onFetchByCategory(
       FetchByCategoryEvent event,
       Emitter<ProductState> emit
@@ -26,7 +27,7 @@ class ProductBloc extends Bloc<ProductEvent,ProductState>{
 
 
 
-    if (_productsByCategory.containsKey(event.categoryId)) { // Safer check
+    if (!event.forceRefresh && _productsByCategory.containsKey(event.categoryId)) { // Safer check
       final cachedProducts = _productsByCategory[event.categoryId]!;
       if (cachedProducts.isNotEmpty) { // Check if there are any cached products
         emit(ProductLoadedState(cachedProducts)); // Load from cache
@@ -35,6 +36,8 @@ class ProductBloc extends Bloc<ProductEvent,ProductState>{
     }
 
     try{
+
+      _productsByCategory.clear();
 
       final supabase =  Supabase.instance.client;
       final List<Map<String,dynamic>> _products ;

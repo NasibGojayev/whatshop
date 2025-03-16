@@ -1,9 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
+import 'package:uuid/uuid.dart';
 import 'address_event.dart';
 import 'address_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:whatshop/Auth/auth_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AddressBloc extends Bloc<AddressEvent, AddressState> {
   AddressBloc() : super(AddressLoadingState()) {
@@ -11,44 +12,76 @@ class AddressBloc extends Bloc<AddressEvent, AddressState> {
     on<DeleteAddressEvent>(_onDeleteAddress);
     on<FetchAddressEvent>(_onFetchAddress);
     on<ShowAddAddressDialog>(_onShowAddAddressDialog);
+    on<SelectAddressEvent>(_onSelectAddress);
+    init();
   }
 
-  List<Map<String, dynamic>> addresses = [];
+  List<UserAddress> addresses = [];
+  String selectedAddressId = 'non';
+  User? user;
+  String? userId;
+  late SupabaseClient _supabase;
 
+  String generateShortUuid(String user) {
+    var uuid =  Uuid();
+    String code = '$user${uuid.v4().substring(0, 5).toUpperCase()}'; // Take first 7 chars
 
+    return code;
+  }
 
+  void init() {
+    _supabase = Supabase.instance.client;
+    user = _supabase.auth.currentUser;
+    userId = user?.id;
+  }
 
-String? userId = AuthService().cachedUser?.id;
+  void _onSelectAddress(
+      SelectAddressEvent event,
+      Emitter<AddressState> emit,
+      ){
+    emit(AddressLoadedState(addresses,event.addressId));
+  }
+
   // Function to store address in Hive
   Future<void> _onAddAddress(
       AddAddressEvent event,
       Emitter<AddressState> emit,
       ) async {
-
     if (userId == null) return;
 
-    List<Map<String, dynamic>> updatedAddresses = List.from(addresses);
     var box = Hive.box('userAddresses');
 
-    // Store address in Hive
-    await box.put(userId, event.address.toMap());
-    updatedAddresses.add(event.address.toMap());
+    // Retrieve existing addresses
+    List<Map<String, dynamic>> storedAddresses = addresses.map((address) => address.toMap()).toList();
 
-    emit(AddressLoadedState(updatedAddresses));
-    addresses = List.from(updatedAddresses);
+    // Add the new address to the list
+    storedAddresses.add(event.address.toMap());
+    await box.put(userId, storedAddresses);
+
+    // Update state
+    addresses = storedAddresses.map((e) => UserAddress.fromMap(e)).toList();
+    emit(AddressLoadedState(List.from(addresses),selectedAddressId));
   }
 
-  // Function to delete address
+  // Function to delete all addresses
   Future<void> _onDeleteAddress(
       DeleteAddressEvent event,
       Emitter<AddressState> emit,
       ) async {
-    if (userId == null) return;
-
     try {
       var box = Hive.box('userAddresses');
-      await box.delete(userId);
-      emit(NoAddressState());
+
+      // Retrieve existing addresses
+      List<Map<String, dynamic>> storedAddresses = addresses.map((address) => address.toMap()).toList();
+
+      // delete the address from the list
+      storedAddresses.removeWhere((element) => element['address_id'] == event.address.address_id);
+
+      await box.put(userId, storedAddresses);
+
+      // Update state
+      addresses = storedAddresses.map((e) => UserAddress.fromMap(e)).toList();
+      emit(AddressLoadedState(List.from(addresses),selectedAddressId));
     } catch (e) {
       emit(AddressErrorState("Error deleting address: $e"));
     }
@@ -61,25 +94,32 @@ String? userId = AuthService().cachedUser?.id;
       ) async {
     emit(AddressLoadingState());
 
-    if (userId == null) return;
-
     try {
-      final List<Map<String, dynamic>> updatedAddresses = List.from(addresses);
       var box = Hive.box('userAddresses');
+      print(box.keys);
+      print(box.values);
+      print('user id is hello world');
+
+      List<UserAddress> updatedAddresses = [];
 
       if (box.containsKey(userId)) {
-        final Map<String, dynamic> addressData = Map<String, dynamic>.from(box.get(userId));
-        final UserAddress address = UserAddress.fromMap(addressData);
-        updatedAddresses.add(address.toMap());
-
-        addresses = List.from(updatedAddresses);
-        emit(AddressLoadedState(updatedAddresses));
-      } else {
-        emit(NoAddressState());
+        for (var e in box.get(userId)) {
+          var address = UserAddress.fromMap(e);
+          updatedAddresses.add(address);
+        }
       }
+      else{
+        emit(NoAddressState());
+        return;
+
+      }
+      addresses = updatedAddresses;
+      emit(AddressLoadedState(addresses,selectedAddressId));
+
     } catch (e) {
-      print(e);
       emit(AddressErrorState("Couldn't fetch the address: $e"));
+      print(e);
+
     }
   }
 
@@ -102,13 +142,14 @@ String? userId = AuthService().cachedUser?.id;
             child: Column(
               children: [
                 CupertinoTextField(
-                  controller: adSoyadController..text ,
+                  controller: adSoyadController,
                   placeholder: 'Ad Soyad',
                 ),
                 SizedBox(height: 10),
                 CupertinoTextField(
                   controller: phoneNumberController,
                   placeholder: 'Telefon nömrəsi',
+                  keyboardType: TextInputType.phone,
                 ),
                 SizedBox(height: 10),
                 CupertinoTextField(
@@ -134,16 +175,22 @@ String? userId = AuthService().cachedUser?.id;
             CupertinoDialogAction(
               child: Text("Əlavə et"),
               onPressed: () {
-                if (addressLine1Controller.text.isNotEmpty) {
-                  UserAddress address = UserAddress(
-                    nameSurname: adSoyadController.text,
-                    line1: addressLine1Controller.text,
-                    line2: addressLine2Controller.text,
-                    phoneNum: phoneNumberController.text,
-                  );
-                  context.read<AddressBloc>().add(AddAddressEvent(address));
-                  Navigator.of(context).pop();
+                if (adSoyadController.text.isEmpty ||
+                    phoneNumberController.text.isEmpty ||
+                    addressLine1Controller.text.isEmpty) {
+                  return;
                 }
+
+                UserAddress address = UserAddress(
+                  address_id: generateShortUuid('ws'),
+                  nameSurname: adSoyadController.text,
+                  line1: addressLine1Controller.text,
+                  line2: addressLine2Controller.text,
+                  phoneNum: phoneNumberController.text,
+                );
+
+                context.read<AddressBloc>().add(AddAddressEvent(address));
+                Navigator.of(context).pop();
               },
             ),
           ],
@@ -155,12 +202,14 @@ String? userId = AuthService().cachedUser?.id;
 
 // Model for UserAddress
 class UserAddress {
+  String address_id;
   final String nameSurname;
   final String line1;
   final String line2;
   final String phoneNum;
 
   UserAddress({
+    required this.address_id,
     required this.nameSurname,
     required this.line1,
     required this.line2,
@@ -170,6 +219,7 @@ class UserAddress {
   // Convert object to Map (for Hive storage)
   Map<String, dynamic> toMap() {
     return {
+      'address_id': address_id,
       'name': nameSurname,
       'line1': line1,
       'line2': line2,
@@ -178,8 +228,9 @@ class UserAddress {
   }
 
   // Convert Map to UserAddress (for Hive retrieval)
-  factory UserAddress.fromMap(Map<String, dynamic> map) {
+  factory UserAddress.fromMap(Map<dynamic, dynamic> map) {
     return UserAddress(
+      address_id: map['address_id'] ?? '',
       nameSurname: map['name'] ?? '',
       line1: map['line1'] ?? '',
       line2: map['line2'] ?? '',

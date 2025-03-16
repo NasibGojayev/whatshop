@@ -43,6 +43,9 @@ dependencies:
   path_provider: ^2.1.5
   share_plus: ^10.1.4
   image_picker: ^1.1.2
+  carousel_slider: ^5.0.0
+  liquid_pull_to_refresh: ^3.0.1
+  uuid: ^4.5.1
 
 dev_dependencies:
   flutter_test:
@@ -67,6 +70,8 @@ flutter:
     - assets/images/products/
     - assets/images/
     - assets/icons/
+    - assets/suffix.txt
+    - assets/words.txt
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

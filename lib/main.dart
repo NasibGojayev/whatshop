@@ -27,6 +27,7 @@ void main() async {
   await Hive.openBox('userAddresses');
 
 
+
   WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
     url: 'https://lwdszubkpfrnyduswzfs.supabase.co',
