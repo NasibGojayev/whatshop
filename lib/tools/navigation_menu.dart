@@ -1,60 +1,59 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
-import '../pages/signed_in_user.dart';
-import '../pages/cart_page.dart';
-import '../pages/category_page.dart';
-import '../pages/favorite_page.dart';
-import '../pages/home_page.dart';
-
-
+import 'colors.dart';
 
 class NavigationMenu extends StatelessWidget {
-  const NavigationMenu({super.key});
+  final Widget child; // <-- This is the page rendered
+  const NavigationMenu({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-          bottomNavigationBar: BlocBuilder<NavigatorCubit,int>(
-              builder: (context,state) {
-              return NavigationBar(
-                  height: 80,
-                  elevation: 0,
-                  selectedIndex: state,
-                  onDestinationSelected: (index) =>
-                      context.read<NavigatorCubit>().changeIndex(index),
-                  destinations: const[
-                    NavigationDestination(icon: Icon(Icons.home), label: 'Əsas'),
-                    NavigationDestination(
-                        icon: Icon(Icons.category), label: 'Kategoriya'),
-                    NavigationDestination(icon: Icon(Icons.share), label: 'Paylaş'),
-                    NavigationDestination(
-                        icon: Icon(Icons.shopping_cart), label: 'Səbət'),
-                    NavigationDestination(
-                        icon: Icon(Icons.person), label: 'Profil'),
-                  ]
-              );
-            }
-          ),
-          body: BlocBuilder<NavigatorCubit,int>(
-            builder: (context,state) {
-              return context.read<NavigatorCubit>().pages[state];
-            }
-          ),
-        );
-  }
-}
+    final location = GoRouter.of(context).state.matchedLocation;
 
-class NavigatorCubit extends Cubit<int>{
-  NavigatorCubit():super(0);
-  void changeIndex(int index){
-    emit(index);
+    return Scaffold(
+      bottomNavigationBar: NavigationBar(
+        height: 80,
+        elevation: 0,
+        selectedIndex: _calculateSelectedIndex(location),
+        onDestinationSelected: (index) {
+          switch (index) {
+            case 0:
+              context.go('/home');
+              break;
+            case 1:
+              context.go('/category');
+              break;
+            case 2:
+              context.go('/favorite');
+              break;
+            case 3:
+              context.go('/cart');
+              break;
+            case 4:
+              context.go('/profile');
+          }
+        },
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.home), label: 'Əsas'),
+          NavigationDestination(icon: Icon(Icons.category), label: 'Kategori'),
+          NavigationDestination(icon: Icon(Icons.favorite), label: 'Sevimli'),
+          NavigationDestination(icon: Icon(Icons.shopping_cart), label: 'Səbət'),
+          NavigationDestination(icon: Icon(Icons.manage_accounts), label: 'Profil'),
+        ],
+      ),
+      body: child,
+    );
   }
-  final pages = [
-    HomePage(),
-    const CategoryPage(),
-     FavoritePage(),
-    const CartPage(),
-    const SignedInUser(),
-  ];
+
+  int _calculateSelectedIndex(String location) {
+    if (location.startsWith('/home')) return 0;
+    if (location.startsWith('/category')) return 1;
+    if (location.startsWith('/favorite')) return 2;
+    if (location.startsWith('/cart')) return 3;
+    if (location.startsWith('/profile')) return 4;
+
+    return 0;
+  }
 }

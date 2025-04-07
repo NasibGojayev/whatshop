@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:whatshop/Auth/auth_service.dart';
 import 'package:whatshop/pages/first_page.dart';
+import 'package:whatshop/pages/home_page.dart';
 import 'package:whatshop/pages/sign_up.dart';
 import 'package:whatshop/tools/colors.dart';
 import 'package:whatshop/tools/navigation_menu.dart';
@@ -203,7 +204,7 @@ class _SecondPageState extends State<SecondPage> {
                await AuthService().signInWithEmailAndPassword(email, password);
                if(AuthService.isSignedIn){
                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-                   return NavigationMenu();
+                   return NavigationMenu(child: HomePage(),);
                  }));
                }
                else{
@@ -340,7 +341,7 @@ Stack imgButton(double widthSize, double heightSize, BuildContext context) {
             Container(
               width: widthSize*0.97,
               height: heightSize*0.37,
-              child: Image.asset('assets/images/frame 2.1.png'),
+              child: Image.asset('assets/images/greenGirl.png'),
             ),
             Container(
               margin: EdgeInsets.only(left: widthSize*0.02 , top: heightSize*0.01),

@@ -1,5 +1,5 @@
+/*
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 
 class FavoriteCubit extends Cubit<List<Map<String,dynamic>>>{
   FavoriteCubit() : super([]);
@@ -13,7 +13,6 @@ class FavoriteCubit extends Cubit<List<Map<String,dynamic>>>{
       updatedFavorites.add(product);
     }
     emit(updatedFavorites);
-
   }
 
   void removeFavorite(String productId){
@@ -22,9 +21,4 @@ class FavoriteCubit extends Cubit<List<Map<String,dynamic>>>{
     updatedFavorites.removeWhere((product) => product['product_id'] == productId);
     emit(updatedFavorites);
   }
-
-
-
-
-
-}
+}*/

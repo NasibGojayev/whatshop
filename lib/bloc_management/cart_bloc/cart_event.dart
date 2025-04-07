@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:whatshop/bloc_management/d_product_bloc/d_product_bloc.dart';
 
 abstract class CartEvent extends Equatable{
   @override
@@ -23,10 +24,20 @@ class UpdateCartQuantityEvent extends CartEvent {
 class FetchCartEvent extends CartEvent{}
 
 class AddCartEvent extends CartEvent{
-  final Map<String,dynamic> product;
-  AddCartEvent(this.product);
+  final ColorOption colorOption;
+  final SizeOption sizeOption;
+  final Product product;
+  AddCartEvent({
+    required this.colorOption,
+    required this.sizeOption,
+    required this.product,
+});
   @override
   List<Object> get props => [product];
+}
+class ToggleSelectedEvent extends CartEvent {
+  final String productId;
+  ToggleSelectedEvent(this.productId);
 }
 
 class DeleteCartEvent extends CartEvent {

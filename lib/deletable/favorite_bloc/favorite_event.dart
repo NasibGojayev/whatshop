@@ -1,3 +1,4 @@
+/*
 import 'package:equatable/equatable.dart';
 
 abstract class FavoriteEvent extends Equatable{
@@ -13,3 +14,4 @@ class ToggleFavoriteEvent extends FavoriteEvent{
   @override
   List<Object> get props => [productId];
 }
+*/

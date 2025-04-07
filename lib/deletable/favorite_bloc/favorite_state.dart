@@ -1,3 +1,4 @@
+/*
 import 'package:equatable/equatable.dart';
 
 abstract class FavoriteState extends Equatable{
@@ -5,12 +6,14 @@ abstract class FavoriteState extends Equatable{
   List<Object> get props =>[];
 }
 
+*/
 /*class FavNotLoggedInState extends FavoriteState{
   final List<String> favorites;
   FavNotLoggedInState(this.favorites);
   @override
   List<Object> get props => [favorites];
-}*/
+}*//*
+
 
 class FavoriteLoadingState extends FavoriteState{}
 
@@ -28,4 +31,4 @@ class FavoriteErrorState extends FavoriteState{
 
   @override
   List<Object> get props =>[error];
-}
+}*/

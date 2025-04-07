@@ -22,7 +22,7 @@ int getCrossAxisCount(BuildContext context) {
 double getChildAspectRatio(BuildContext context) {
   double widthSize = getWidthSize(context);
   return (widthSize < 360) ? 0.62 :
-  (widthSize < 430) ? 0.75 :
+  (widthSize < 430) ? 0.55 :
   (widthSize < 500) ? 0.9 :
   (widthSize < 550) ? 0.68 :
   (widthSize < 650) ? 0.75 :

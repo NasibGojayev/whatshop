@@ -1,218 +1,226 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../d_product_bloc/d_product_bloc.dart';
 import 'cart_event.dart';
 import 'cart_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-
-
-
 class CartBloc extends Bloc<CartEvent, CartState> {
-  CartBloc() : super(CartLoadingState()) {
+  final SupabaseClient _supabase;
+  CartBloc(this._supabase) : super(CartLoadingState()) {
     on<FetchCartEvent>(_onFetchCart);
     on<AddCartEvent>(_onAddCart);
     on<DeleteCartEvent>(_onDeleteCart);
     on<UpdateCartQuantityEvent>(_onUpdateQuantity);
+    on<ToggleSelectedEvent>(_onToggleSelected);
     init();
   }
 
-  List<Map<String, dynamic>> cart = [];
-  List<Map<String, dynamic>> cartProducts = [];
+  List<CartItem> cart = [];
+  late User? user;
+  late String userId;
+  bool isFetched = false;
 
- late User? user;
- late String userId;
- late SupabaseClient _supabase;
-
- void init(){
-
-   _supabase = Supabase.instance.client;
-   user = _supabase.auth.currentUser;
-
-   if(user!=null){
-     userId = user!.id;
-   }
-   else{
-     print("user is null ");
-   }
- }
-
-
-
-  Future<void> _onAddCart(AddCartEvent event, Emitter<CartState> emit) async {
-
-
-    List<Map<String, dynamic>> updatedCart = List<Map<String, dynamic>>.from(cart);
-    List<Map<String, dynamic>> updatedCartProducts = List<Map<String, dynamic>>.from(cartProducts);
-
-   if(updatedCartProducts.any((item)=>item['product_id']==event.product['product_id'])){
-     print("item already exists");
-     return;
-   }
-
-    updatedCart.add({
-      'product_id': event.product['product_id'],
-      'quantity': 1,
-    });
-
-
-
-    updatedCartProducts.add(event.product);
-
-
-    try{
-      await _supabase
-          .from('users')
-          .update({
-        'cart': updatedCart,  // Update the cart with the new data
-      }).eq('id', userId);
-
-      print('Item appended successfully!');
-
-      emit(CartLoadedState(updatedCart,updatedCartProducts));
-
-    }catch(e){
-      emit(CartErrorState("Couldn't add to cart: $e"));
+  void init() {
+    user = _supabase.auth.currentUser;
+    if (user != null) {
+      userId = user!.id;
+      add(FetchCartEvent());
+    } else {
+      print("User is null");
     }
-
   }
-
-
-
-
-
 
   Future<void> _onFetchCart(FetchCartEvent event, Emitter<CartState> emit) async {
     emit(CartLoadingState());
 
-    try{
-      SupabaseClient _supabase = Supabase.instance.client;
-      var result = await _supabase.from('users').select('cart').eq('id', userId).single();
-
-      // Extract the 'cart' field from the result
-      final cartData = result['cart'] as List<dynamic>;
-
-      // Cast the cart data to List<Map<String, dynamic>>
-      cart = cartData.cast<Map<String, dynamic>>();
-
-      cartProducts = await _supabase.rpc('fn_get_products', params: {
-         'user_id': userId,
-       });
-      print('nasib');
-
-      emit(CartLoadedState(cart,cartProducts));
-
-
-    }
-    catch(e){
-      print(e);
-      emit(CartErrorState("Couldn't fetch the cart: $e"));
-    }
-
-  }
-
-
-
-  Future<void> _onDeleteCart(DeleteCartEvent event, Emitter<CartState> emit) async {
-
-    List<Map<String, dynamic>> updatedCart = List<Map<String, dynamic>>.from(cart);
-    List<Map<String, dynamic>> updatedCartProducts = List<Map<String, dynamic>>.from(cartProducts);
-
-
-   updatedCartProducts.removeWhere((item) => item['product_id'] == event.productId);
-   updatedCart.removeWhere((item) => item['product_id'] == event.productId);
-
-    await _supabase
-        .from('users')
-        .update({
-      'cart': updatedCart,  // Update the cart with the new data
-    }).eq('id', userId);
-
-
-
-   emit(CartLoadedState(updatedCart,updatedCartProducts));
-  }
-
-
-
-
-
-
-  Future<void> _onUpdateQuantity(
-      UpdateCartQuantityEvent event,
-      Emitter<CartState> emit,
-      ) async {
     try {
-      if (user != null) {
-
-        // Create a copy of the current cart
-        List<Map<String, dynamic>> updatedCart = List.from(cart);
-
-        // Find the item to update
-        final index = updatedCart.indexWhere(
-                (item) => item['product_id'] == event.productId
-        );
-
-        if (index != -1) {
-          // Update the quantity
-          updatedCart[index] = {
-            'product_id': event.productId,
-            'quantity': event.quantity,
-          };
-
-          await _supabase.rpc('update_cart_quantity', params: {
-            'user_id': userId,
-            'product_id': event.productId,
-            'new_quantity': event.quantity,
-          });
-
-          // Update local state
-          cart = updatedCart;
-
-          // Emit new state with updated data
-          emit(CartLoadedState(
-            List.from(cart),
-            List.from(cartProducts),
-          ));
-        }
-      }
-    } catch (e) {
-      emit(CartErrorState("Could not update quantity: $e"));
-    }
-  }
-
-
-
-  /*Future<void> _onUpdateQuantity(UpdateCartQuantityEvent event, Emitter<CartState> emit) async {
-    try {
-
-      List<Map<String, dynamic>> updatedCart = List<Map<String, dynamic>>.from(cart);
-      List<Map<String, dynamic>> updatedCartProducts = List<Map<String, dynamic>>.from(cartProducts);
-
-
-      final itemIndex = cart.indexWhere((item) => item['product_id'] == event.productId);
-      if (itemIndex == -1) {
-        emit(CartErrorState("Product not found in cart"));
+      double total = 0;
+      // Fetch user cart data
+      final response = await _supabase.from('users').select('cart').eq('id', userId).single();
+      final List<dynamic> cartData = response['cart'] ?? [];
+      if (cartData.isEmpty) {
+        emit(CartEmptyState());
         return;
       }
 
+      // Fetch product details using RPC
+      final List<Product> cartProducts =[];
 
-      updatedCart[itemIndex]['quantity'] = event.quantity;
-
-      // Update the quantity in the database
-      await _supabase.rpc('update_cart_quantity', params: {
+      var json = await _supabase.rpc('f_get_products', params: {
         'user_id': userId,
-        'product_id': event.productId,
-        'new_quantity': event.quantity,
       });
+      for(var item in json){
+        cartProducts.add(
+            getProductFromJson(item)
+        );
+      }
 
-      print('Cart quantity updated successfully');
+      // Create the cart list by matching cart items with product details
+      cart.clear(); // Clear existing cart before adding fresh data
+      for (var product in cartProducts) {
+        final matchingCartItem = cartData.firstWhere(
+              (item) => item['product_id'] == product.productId,
+          orElse: () => null,
+        );
 
-      // Emit the updated state
-      emit(CartLoadedState(updatedCart, updatedCartProducts));
+        if (matchingCartItem != null) {
+          cart.add(CartItem(
+            sizeOption: SizeOption(
+                price: product.sizeOptions.firstWhere((element) => element.size == matchingCartItem['size']).price,
+                size: matchingCartItem['size'],
+                isAvailable: product.sizeOptions.firstWhere((element) => element.size == matchingCartItem['size']).isAvailable) ,
+            colorOption: ColorOption(
+                color: matchingCartItem['size'] as String,
+                isAvailable: product.colorOptions.firstWhere((element) => element.color == matchingCartItem['color']).isAvailable),
+            quantity: matchingCartItem['quantity'] as int,
+            isSelected: matchingCartItem['isSelected'] as bool,
+            name: product.name,
+            image: product.images.isNotEmpty == true ? product.images[0] :'',
+            //price: product.sizeOption.firstWhere((element) => element.size == matchingCartItem['size']).price,
+            productId: product.productId,
+            
+          ));
+        }
+      }
 
-
-    } catch (e) {
-      emit(CartErrorState("Could not update quantity: $e"));
+      isFetched = true;
+      for(var item in cart){
+        if(item.isSelected){
+          total+=item.sizeOption.price*item.quantity;
+        }
+      }
+      emit(CartLoadedState(List.from(cart),total)); // Emit cart with products
+    } catch (e, stackTrace) {
+      debugPrint('Fetch cart error: $e');
+      debugPrint('Stack trace: $stackTrace');
+      emit(CartErrorState("Couldn't fetch the cart: $e"));
     }
-  }*/
-}
+  }
 
+  Future<void> _onAddCart(AddCartEvent event, Emitter<CartState> emit) async {
+    // Fetch cart only once
+    if (!isFetched) {
+      await _onFetchCart(FetchCartEvent(), emit);
+    }
+
+    // Check if item already exists in cart
+    if (cart.any((item) => item.productId == event.product.productId)) {
+      debugPrint("Item already exists in cart.");
+      return;
+    }
+
+    // Add new item to cart
+    // is availabilityni burada true verirem , zaten eger karta atmisamsa true-dur.
+    // eger elcatan deyilse bu detailed product page de gorunecek
+
+
+    final newItem = CartItem(
+      sizeOption: SizeOption(
+          price: event.sizeOption.price,
+          size: event.sizeOption.size,
+          isAvailable: true),
+      colorOption: ColorOption(
+          color: event.colorOption.color,
+          isAvailable: true),
+      name: event.product.name,
+      image: event.product.images[0],
+      productId: event.product.productId,
+      quantity: 1,
+      isSelected: true,
+    );
+
+    cart.add(newItem);
+    debugPrint('${event.product.productId} added to cart');
+
+    try {
+      await _supabase.from('users').update({
+        'cart': cart.map((e) => e.forDb()).toList(),
+      }).eq('id', userId);
+      double total = 0;
+
+      for(var item in cart){
+        if(item.isSelected){
+          total +=item.sizeOption.price*item.quantity;
+        }
+      }
+
+      emit(CartLoadedState(List.from(cart),total)); // Emit updated cart
+    } catch (e) {
+      emit(CartErrorState("Couldn't add to cart: $e"));
+    }
+  }
+//-----------------------------------------
+  Future<void> _onDeleteCart(DeleteCartEvent event, Emitter<CartState> emit) async {
+    double total = 0;
+    cart.removeWhere((item) => item.productId == event.productId);
+
+    try {
+      await _supabase.from('users').update({
+        'cart': cart.map((e) => e.forDb()).toList(),
+      }).eq('id', userId);
+      for(var item in cart){
+        if(item.isSelected){
+          total +=item.sizeOption.price*item.quantity;
+        }
+      }
+      emit(CartLoadedState(List.from(cart),total)); // Emit updated cart after removal
+    } catch (e) {
+      emit(CartErrorState("Couldn't delete from cart: $e"));
+    }
+  }
+
+  Future<void> _onUpdateQuantity(UpdateCartQuantityEvent event, Emitter<CartState> emit) async {
+    try {
+      double total = 0;
+      emit(CartUpdatingQuantityState(List.from(cart), event.productId,total));
+
+      final index = cart.indexWhere((item) => item.productId == event.productId);
+      if (index != -1) {
+        cart[index].quantity = event.quantity;
+
+        await _supabase.rpc('update_cart_quantity', params: {
+          'user_id': userId,
+          'product_id': event.productId,
+          'new_quantity': event.quantity,
+        });
+
+        await _supabase.from('users').update({
+          'cart': cart.map((e) => e.forDb()).toList(),
+        }).eq('id', userId);
+        for(var item in cart){
+          if(item.isSelected){
+            total +=item.sizeOption.price*item.quantity;
+          }
+        }
+        emit(CartLoadedState(List.from(cart),total)); // Emit updated cart after quantity change
+      }
+    } catch (e) {
+      emit(CartErrorState("Couldn't update quantity: $e"));
+    }
+  }
+
+  Future<void> _onToggleSelected(ToggleSelectedEvent event, Emitter<CartState> emit) async {
+    try {
+      double total = 0;
+      emit(CartLoadingState());
+
+      final itemIndex = cart.indexWhere((item) => item.productId == event.productId);
+      if (itemIndex != -1) {
+        cart[itemIndex].isSelected = !cart[itemIndex].isSelected;
+
+        await _supabase.from('users').update({
+          'cart': cart.map((e) => e.forDb()).toList(),
+        }).eq('id', userId);
+      }
+      for(var item in cart){
+        if(item.isSelected){
+          total +=item.sizeOption.price*item.quantity;
+        }
+      }
+      emit(CartLoadedState(List.from(cart),total)); // Emit updated cart after toggle
+    } catch (e) {
+      emit(CartErrorState("Couldn't update selection: $e"));
+    }
+  }
+}

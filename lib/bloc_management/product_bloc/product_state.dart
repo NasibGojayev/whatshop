@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../d_product_bloc/d_product_bloc.dart';
+
 abstract class ProductState extends Equatable{
   @override
   List<Object?> get props => [];
@@ -8,9 +10,9 @@ abstract class ProductState extends Equatable{
 class ProductLoadingState extends ProductState{}
 
 class ProductLoadedState extends ProductState{
-  final List<Map<String,dynamic>> products;
+  final List<Product> products;
 
-  ProductLoadedState(this.products);
+  ProductLoadedState({required this.products});
   @override
   List<Object?> get props =>[products];
 
@@ -31,6 +33,10 @@ class ProductPaginatingState extends ProductState{
   @override
   List<Object?> get props => [products];
 }
+
+
+
+
 
 class EndOfPageState extends ProductState{}
 

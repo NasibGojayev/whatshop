@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../d_product_bloc/d_product_bloc.dart';
 import 'product_event.dart';
 import 'product_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,7 +11,7 @@ class ProductBloc extends Bloc<ProductEvent,ProductState>{
   }
 
 
-  final Map<String,List<Map<String,dynamic>>> _productsByCategory={};
+  final Map<String,List<Product>> _productsByCategory={};
 
 
 
@@ -30,7 +31,7 @@ class ProductBloc extends Bloc<ProductEvent,ProductState>{
     if (!event.forceRefresh && _productsByCategory.containsKey(event.categoryId)) { // Safer check
       final cachedProducts = _productsByCategory[event.categoryId]!;
       if (cachedProducts.isNotEmpty) { // Check if there are any cached products
-        emit(ProductLoadedState(cachedProducts)); // Load from cache
+        emit(ProductLoadedState(products: cachedProducts)); // Load from cache
         return; // Important: Stop here if you used the cache
       }
     }
@@ -40,20 +41,30 @@ class ProductBloc extends Bloc<ProductEvent,ProductState>{
       _productsByCategory.clear();
 
       final supabase =  Supabase.instance.client;
-      final List<Map<String,dynamic>> _products ;
+      final List<Product> _products = [] ;
+
+      var json =[];
 
       if(event.categoryId=='0'){
-         _products = await supabase
+          json = await supabase
             .from('products')
             .select()
             .limit(14);
+
+
       }
       else{
-         _products = await supabase
+          json = await supabase
             .from('products')
             .select().eq('category',event.categoryId)
             .limit(14);
 
+      }
+
+      for(var item in json){
+        _products.add(
+            getProductFromJson(item)
+        );
       }
 
 
@@ -62,18 +73,21 @@ class ProductBloc extends Bloc<ProductEvent,ProductState>{
       _productsByCategory.putIfAbsent(event.categoryId, ()=>[]);
 
       _productsByCategory[event.categoryId]!.addAll(_products);
-      emit(ProductLoadedState(_productsByCategory[event.categoryId]!));
+      if(_productsByCategory[event.categoryId]!.isEmpty){
+        emit(EndOfProductsState());
+        return;
+      }
+      emit(ProductLoadedState(products:_productsByCategory[event.categoryId]!));
     }catch(error){
       emit(ProductErrorState('Error Fetching the products : $error'));
+      print(error);
     }
   }
 
   Future<void> _onFetchNextProducts(
       FetchNextProductsEvent event,
       Emitter<ProductState> emit
-      ) async{
-
-    emit(ProductLoadingState());
+      ) async{/*emit(ProductLoadingState());
 
     final categoryId = event.categoryId;
 
@@ -111,7 +125,6 @@ class ProductBloc extends Bloc<ProductEvent,ProductState>{
 
     }catch(error){
       emit(ProductErrorState('Error Fetching more products : $error'));
-    }
-  }
+    }*/}
 
 }

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:whatshop/bloc_management/favorite_bloc/favorite_events.dart';
 import 'package:whatshop/pages/detailed_product_page.dart';
 import 'package:whatshop/pages/home_page.dart';
 import 'package:whatshop/tools/variables.dart';
 
-import '../bloc_management/favorite_bloc/favorite_cubit.dart';
+import '../bloc_management/favorite_bloc/favorite_bloc.dart';
+import '../bloc_management/favorite_bloc/favorite_states.dart';
+import '../deletable/favorite_cubit.dart';
 import 'colors.dart';
 
 class ProductSearchDelegate extends SearchDelegate {
@@ -78,21 +82,33 @@ class ProductSearchDelegate extends SearchDelegate {
 
             return GestureDetector(
               onTap: (){
-                Navigator.push(context, MaterialPageRoute(builder:
-                    (context)=>DetailedProductPage(
-                  product: product,)));
+                GoRouter.of(context).push(
+                  '/product/${product['product_id']}',
+                );
               },
-              child: Item(id: product['product_id']??' ',icon: BlocBuilder<FavoriteCubit,List<Map<String,dynamic>>>(
-              builder: (context,state){
-                return state.any((element) => element['product_id']==product['product_id'])
-                    ? Icon(Icons.check_box,color: mainGreen,size: 30,)
-                    : Icon(Icons.check_box_outline_blank,size: 30,);
-              }
-              ),
+              child: Item(id: product['product_id']??' ',
                   name: product['name'], price: product['price'],
-                onPressed: () {
-                  context.read<FavoriteCubit>().toggleFavorite(product);
-                },
+
+                icon: GestureDetector(
+                  onTap: (){
+                    context.read<FavoriteBloc>().add(ToggleFavoriteEvent(product: product));
+                  },
+                  child: BlocBuilder<FavoriteBloc, FavoriteStates>(
+                      builder: (context, state) {
+                        if (state is FavoriteUpdatedState) {
+                          final updatedFavorites = state.updatedFavorites;
+                          final isFavorite = updatedFavorites.any((fav) => fav.productId == product['product_id']);
+                          //isFavorite?Icon(Icons.favorite,color: primaryColor, size: 24,):Icon(Icons.favorite_border_outlined,color: primaryColor, size: 24,);
+
+                          return Icon(isFavorite?Icons.favorite:Icons.favorite_border_outlined,color: primaryColor, size: 24,);
+
+                        }
+                        else {
+                          return Icon(Icons.favorite_border_outlined);
+                        }
+                      }
+                  ),
+                ),
                 image: Image.network(product['pic_path'][0]),),
             );
 
