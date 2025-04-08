@@ -3,6 +3,8 @@
 used tech stack:
 Dart
 Flutter
-Firebase
+Firebase,
+Supabase,
+PostgreSQL,
 Google Cloud
 
