@@ -3,13 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:whatshop/bloc_management/favorite_bloc/favorite_events.dart';
-import 'package:whatshop/pages/detailed_product_page.dart';
 import 'package:whatshop/pages/home_page.dart';
 import 'package:whatshop/tools/variables.dart';
 
 import '../bloc_management/favorite_bloc/favorite_bloc.dart';
 import '../bloc_management/favorite_bloc/favorite_states.dart';
-import '../deletable/favorite_cubit.dart';
 import 'colors.dart';
 
 class ProductSearchDelegate extends SearchDelegate {
@@ -91,13 +89,13 @@ class ProductSearchDelegate extends SearchDelegate {
 
                 icon: GestureDetector(
                   onTap: (){
-                    context.read<FavoriteBloc>().add(ToggleFavoriteEvent(product: product));
+                    context.read<FavoriteBloc>().add(ToggleFavoriteEvent(favoriteObject: product));
                   },
                   child: BlocBuilder<FavoriteBloc, FavoriteStates>(
                       builder: (context, state) {
-                        if (state is FavoriteUpdatedState) {
-                          final updatedFavorites = state.updatedFavorites;
-                          final isFavorite = updatedFavorites.any((fav) => fav.productId == product['product_id']);
+                        if (state is FavoriteLoadedState) {
+                          final favorites = state.favorites;
+                          final isFavorite = favorites.any((fav) => fav.productId == product['product_id']);
                           //isFavorite?Icon(Icons.favorite,color: primaryColor, size: 24,):Icon(Icons.favorite_border_outlined,color: primaryColor, size: 24,);
 
                           return Icon(isFavorite?Icons.favorite:Icons.favorite_border_outlined,color: primaryColor, size: 24,);

@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:whatshop/bloc_management/product_bloc/product_event.dart';
 import 'package:whatshop/tools/custom_search_delegate.dart';
-import 'package:whatshop/tools/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -12,32 +11,31 @@ import 'package:whatshop/bloc_management/category_bloc/category_event.dart';
 import 'package:whatshop/bloc_management/category_bloc/category_state.dart';
 import 'package:whatshop/bloc_management/product_bloc/product_bloc.dart';
 import 'package:whatshop/bloc_management/product_bloc/product_state.dart';
-import 'package:whatshop/pages/detailed_product_page.dart';
 import '../bloc_management/d_product_bloc/d_product_bloc.dart';
 import '../bloc_management/favorite_bloc/favorite_bloc.dart';
 import '../bloc_management/favorite_bloc/favorite_events.dart';
 import '../bloc_management/favorite_bloc/favorite_states.dart';
 import '../tools/colors.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 
 class HomePage extends StatelessWidget {
   final ScrollController scrollController = ScrollController();
   final SearchController searchController = SearchController();
-  String categoryId = "0";
+
 
   HomePage({super.key});
 
-  Future<void> refresh() async {
-    // Implement your refresh logic here
-    // context.read<ProductBloc>().add(FetchByCategoryEvent(categoryId, forceRefresh: true));
-    print('now it refreshed');
-  }
 
   @override
   Widget build(BuildContext context) {
-    int crossAxisCount = getCrossAxisCount(context);
-    double childAspectRatio = getChildAspectRatio(context);
-
+    Future<void> refresh() async {
+      // Implement your refresh logic here
+      CategoryState currentState = context.read<CategoryBloc>().state;
+      String cId = '';
+      if(currentState is CategoryLoaded){
+        cId = currentState.categories[currentState.selectedIndex].id;
+      }
+      context.read<ProductBloc>().add(FetchByCategoryEvent(cId, forceRefresh: true));
+    }
     return Scaffold(
       body: SafeArea(
         child: LiquidPullToRefresh(
@@ -105,7 +103,7 @@ class HomePage extends StatelessWidget {
                             child: Text(
                               'Ad və ya kodla axtarın',
                               style: TextStyle(
-                                color: Colors.black.withOpacity(0.45),
+                                color: Colors.black.withValues(alpha: 0.45),
                                 fontSize: 12, // Slightly larger for better readability
                                 fontFamily: 'Inter',
                                 fontWeight: FontWeight.w500,
@@ -128,7 +126,7 @@ class HomePage extends StatelessWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(10.0),
-                  child: Container(
+                  child: SizedBox(
                     height: 40,
                     child: BlocBuilder<CategoryBloc, CategoryState>(
                       builder: (context, state) {
@@ -144,9 +142,9 @@ class HomePage extends StatelessWidget {
                                 color: state.selectedIndex == index
                                     ? Color(0xFF25D366)
                                     : bozumsu,
-                                name: "${state.categories[index]['name']}",
+                                name: state.categories[index].name,
                                 onPressed: () {
-                                  categoryId = state.categories[index]['id'];
+                                  String categoryId = state.categories[index].id;
                                   context.read<CategoryBloc>().add(
                                       SetSelectedIndex(index));
                                   context.read<ProductBloc>().add(
@@ -192,14 +190,21 @@ class HomePage extends StatelessWidget {
                               }, child: Icon(Icons.shopping_cart_sharp)),
                               icon: GestureDetector(
                                 onTap: (){
-                                  context.read<FavoriteBloc>().add(ToggleFavoriteEvent(product: product));
+                                  context
+                                      .read<FavoriteBloc>()
+                                      .add(ToggleFavoriteEvent(favoriteObject: FavoriteObject(
+                                    avgRating: product.avgRating,
+                                      name: product.name,
+                                      price: product.sizeOptions[0].price,
+                                      image: product.images[0],
+                                      productId: product.productId)));
 
 
                                 },
                                 child: BlocBuilder<FavoriteBloc, FavoriteStates>(
                                   builder: (context, state) {
-                                    if (state is FavoriteUpdatedState) {
-                                      final updatedFavorites = state.updatedFavorites;
+                                    if (state is FavoriteLoadedState) {
+                                      final updatedFavorites = state.favorites;
                                       final isFavorite = updatedFavorites.any((fav) => fav.productId == product.productId);
                                       //isFavorite?Icon(Icons.favorite,color: primaryColor, size: 24,):Icon(Icons.favorite_border_outlined,color: primaryColor, size: 24,);
 
@@ -254,14 +259,12 @@ class HomePage extends StatelessWidget {
                       ),)
                     );
                   } else if (state is EndOfProductsState) {
-                    print(state);
                     return SliverFillRemaining(
                       child: Center(
                         child: Text('Heleki mehsul yoxdur , gozlemede qalin ✨'),
                       ),
                     );
                   } else {
-                    print(state);
                     return SliverFillRemaining(
                       child: Center(child: Text('Gozlenilmeyen xeta bas verdi')),
                     );

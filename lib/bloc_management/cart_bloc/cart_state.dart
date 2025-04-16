@@ -13,7 +13,7 @@ class CartLoadingState extends CartState{}
 
 class CartLoadedState extends CartState{
   final List<CartItem> cart;
-  double total=0;
+  final double total;
   CartLoadedState(this.cart, this.total);
   @override
   List<Object> get props => [cart];
@@ -27,7 +27,7 @@ class CartErrorState extends CartState{
 }
 class CartUpdatingQuantityState extends CartState{
   final List<CartItem> cart;
-  double total=0;
+  final double total;
   final String updatingProductId;
   CartUpdatingQuantityState(this.cart, this.updatingProductId,this.total);
   @override
@@ -41,7 +41,6 @@ class CartItem{
   final String productId;
   final String name;
   final String image;
-
   final ColorOption colorOption;
   final SizeOption sizeOption;
   int quantity;
@@ -73,7 +72,6 @@ class CartItem{
     return {
       'product_id': productId,
       'quantity': quantity,
-      'isSelected': isSelected,
       'color': colorOption.color,
       'size': sizeOption.size,
     };

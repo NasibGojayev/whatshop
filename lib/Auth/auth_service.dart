@@ -1,110 +1,138 @@
+import 'dart:math';
+
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+class AuthService {
+  final SupabaseClient _supabase = Supabase.instance.client;
 
-class AuthService{
-
-
-  final SupabaseClient _supabase = Supabase.instance.client ;
-
-   User? cachedUser;
-
-
-   Future<User?> getCurrentUser() async{
-
-    AuthService authService = AuthService();
-
-    if(cachedUser!=null)  return cachedUser;
-    cachedUser = authService._supabase.auth.currentUser;
-
-    return cachedUser;
-
+  // Remove static flags - these can cause state inconsistencies
+  bool get isSignedIn => _supabase.auth.currentSession != null;
+  set isSignedIn(bool newValue) {
+    isSignedIn = newValue;
   }
 
-  static bool isSignedUp = false;
-  static bool isSignedIn = false;
+  Future<AuthResponse> signInWithEmailAndPassword(
+      String email, String password) async {
+    try {
+      // Clear any existing session first
+      final response = await _supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
 
-  //Sign in with email and password
+      if (response.user == null) {
+        throw Exception('Sign-in failed: No user returned');
+      }
 
-  Future<AuthResponse> signInWithEmailAndPassword(String email, String password) async{
-    final response = await _supabase.auth.signInWithPassword(
-      email: email,
-      password: password
-    );
-    isSignedIn = true;
-
-    return response;
-  }
-
-
-
-  //Sign up with email and password
-
-  Future<AuthResponse> signUpWithEmailAndPassword(Customer customer) async {
-
-    final AuthResponse response = await _supabase.auth.signUp(
-        email: customer.email,
-        password: customer.password.toString()
-    );
-    await addUserToBase(
-      Customer(
-        id: response.user!.id,
-        name: customer.name,
-        password: customer.password,
-        email: customer.email
-      )
-    );
-    isSignedUp = true;
-    return response;
-  }
-
-  //Sign out
-    Future<void> signOut() async{
-    isSignedUp = false;
-    isSignedIn = false;
-    await _supabase.auth.signOut();
-  }
-
-
- // Get user email
-
-String? getUserEmail(){
-    final user = _supabase.auth.currentUser;
-    if(user!=null){
-
-      return user.email;
+      return response;
+    } catch (e) {
+      isSignedIn = false; // Clear the flag
+      debugPrint('SignIn error: $e');
+      // Always rethrow errors to handle them in the UI
+      rethrow;
     }
-    return null;
+  }
+
+  Future<AuthResponse> signUpWithEmailAndPassword(
+      {email, password, name}) async {
+    try {
+      String uniqueId = await generateUniqueUsername(name);
+      await addUserToBase(
+        Customer(
+          id: uniqueId,
+          name: name,
+          email: email,
+        ),
+      );
+
+      final response =
+          await _supabase.auth.signUp(
+              email: email,
+              password: password,
+              data: {
+                'fullname': name,
+                'username': uniqueId,
+              });
+
+      if (response.user == null) {
+        throw Exception('Sign-up failed: No user returned');
+      }
+
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> signOut() async {
+    try {
+      await _supabase.auth.signOut();
+      // Clear any local cache if needed
+    } catch (e) {
+      debugPrint('SignOut error: $e');
+      rethrow;
+    }
+  }
+
+  String? get userEmail => _supabase.auth.currentUser?.email;
+
+  Future<void> addUserToBase(Customer customer) async {
+    try {
+      await _supabase.from('users').insert({
+        'id': customer.id,
+        'name': customer.name,
+        'email': customer.email,
+        'cart': [],
+      });
+    } catch (e) {
+      debugPrint('Error adding user to database: $e');
+      rethrow;
+    }
+  }
+
+  Future<String> generateUniqueUsername(String fullName) async {
+    final SupabaseClient supabase = Supabase.instance.client;
+
+    // Step 1: Make the base username
+    String baseUsername = fullName.toLowerCase().replaceAll(' ', '');
+    String username = '@$baseUsername';
+
+    // Step 2: Check if username exists
+    var existing = await supabase.from('users').select("id").eq('id', username);
+
+    int attempt = 0;
+    Random random = Random();
+
+    // Step 3: If exists, add random numbers
+    while (existing.isNotEmpty) {
+      attempt++;
+      int randomNumber = random.nextInt(900) + 100; // 100-999
+      username = '@$baseUsername$randomNumber';
+
+      existing =
+          await supabase.from('users').select('id').eq('username', username);
+
+      // Safety break if somehow gets stuck
+      if (attempt > 20) {
+        throw Exception('Failed to generate unique username');
+      }
+    }
+
+    return username;
+  }
 }
 
-  Future<void> addUserToBase(Customer customer) async{
-    await _supabase.from('users').insert({
-      'id':customer.id,
-      'name':customer.name,
-      'email':customer.email,
-      'password':customer.password,
-      'cart': []
-    }
-    );
-
-  }
-
-
-
-}
-
-
-class Customer{
+class Customer {
   final String? id;
   final String? name;
-  final String? password;
   final String? email;
   final List<Map<String, dynamic>> cart;
 
   Customer({
-    this.cart = const[],
     this.id,
     required this.name,
-    required this.password,
     required this.email,
+    this.cart = const [],
   });
 }

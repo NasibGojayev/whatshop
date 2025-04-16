@@ -16,7 +16,6 @@ class UserBloc extends Bloc<UserEvent,UserState>{
 
     emit(UserLoading()); // Set state to loading
     try {
-      print('started fetching');
       User? user = Supabase.instance.client.auth.currentUser;
       if (user == null) {
         emit(UserError("User not logged in"));
@@ -28,4 +27,16 @@ class UserBloc extends Bloc<UserEvent,UserState>{
       emit(UserError("Error fetching user: $e"));
     }
   }
+}
+
+class UserObject{
+  final String name;
+  final String email;
+  final String phone;
+  final String? profileImage;
+  UserObject({
+    required this.name,
+    required this.email,
+    required this.phone,
+    required this.profileImage,});
 }

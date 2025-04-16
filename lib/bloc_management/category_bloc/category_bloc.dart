@@ -1,4 +1,4 @@
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'category_event.dart';
 import 'category_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -14,20 +14,10 @@ class CategoryBloc extends Bloc<CategoryEvent,CategoryState>{
     emit(CategoryLoading()); //emit loading state
 
     try{
-      /*final categorySnapshot =
-          await FirebaseFirestore.instance.collection('categories').get();
-      final categories = categorySnapshot.docs.map((doc){
-        return{
-          'id' : doc.id,
-          'name' : doc["name"],
-          'description':doc['description'],
-          'iconPath' : doc['iconPath']
-        };
-      }).toList();*/
 
-      final categories = await Supabase.instance.client.from('categories').select("*").order('id',ascending: true);
+      final json = await Supabase.instance.client.from('categories').select("*").order('id',ascending: true);
 
-      print('fetched the categories');
+      final categories = json.map((e) => CategoryObject.fromJson(e)).toList();
 
       emit(CategoryLoaded(categories,0));
     }catch(error){
@@ -42,4 +32,23 @@ class CategoryBloc extends Bloc<CategoryEvent,CategoryState>{
       emit(CategoryLoaded(currentState.categories, event.newIndex));
     }
   }
+}
+
+class CategoryObject{
+  final String id;
+  final String name;
+  final String description;
+  final String image;
+
+  const CategoryObject({required this.description,required this.image,required this.id,required this.name});
+
+  factory CategoryObject.fromJson(Map<String,dynamic> json){
+    return CategoryObject(
+      id: json['id'],
+      name: json['name'],
+      description: json['description'],
+      image: json['iconPath'],
+    );
+  }
+
 }

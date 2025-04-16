@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'sign_in.dart';
+import 'profile_pages/sign_in.dart';
 import '../tools/colors.dart';
 class FirstPage extends StatelessWidget {
   const FirstPage({super.key});
@@ -50,54 +50,52 @@ class FirstPage extends StatelessWidget {
 
 
 
-  Container textWritten(BuildContext context) {
-    return Container(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+  Column textWritten(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
 
-            children: [
-              Text(
-                'Ən yaxşı',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Color(0xFF1E1E1E),
-                  fontSize: 36,
-                  fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.w700,
-                  height: 0,
-                ),
-              ),
-// ---
-              Text(
-                'tərzini tap',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Color(0xFF1E1E1E),
-                  fontSize: 36,
-                  fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.w700,
-                  height: 0,
-                ),
-              ),
-// ---
-              Container(
-                margin: EdgeInsets.only(top: 20),
-                width: MediaQuery.of(context).size.width*0.6,
-                child: Text(
-                  'Join and discover the best style according to your passion',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Color(0x99323232),
-                    fontSize: 16,
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w400,
-                    height: 0,
-                  ),
-                ),
-              )
-            ],
+      children: [
+        Text(
+          'Ən yaxşı',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Color(0xFF1E1E1E),
+            fontSize: 36,
+            fontFamily: 'Montserrat',
+            fontWeight: FontWeight.w700,
+            height: 0,
           ),
-        );
+        ),
+    // ---
+        Text(
+          'tərzini tap',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Color(0xFF1E1E1E),
+            fontSize: 36,
+            fontFamily: 'Montserrat',
+            fontWeight: FontWeight.w700,
+            height: 0,
+          ),
+        ),
+    // ---
+        Container(
+          margin: EdgeInsets.only(top: 20),
+          width: MediaQuery.of(context).size.width*0.6,
+          child: Text(
+            'Join and discover the best style according to your passion',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0x99323232),
+              fontSize: 16,
+              fontFamily: 'Inter',
+              fontWeight: FontWeight.w400,
+              height: 0,
+            ),
+          ),
+        )
+      ],
+    );
   }
 
   Container image(BuildContext context) {
@@ -111,7 +109,7 @@ class FirstPage extends StatelessWidget {
     Radius.circular(33),
     ),
     ),),
-      child: Image.network('https://storage.googleapis.com/whatshop-5a3f8.firebasestorage.app/frame2.png'),
+      child: Image.network('https://storage.googleapis.com/whatshop_bucket/frame2.png'),
 
         );
   }

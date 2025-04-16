@@ -1,8 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
-import 'colors.dart';
 
 class NavigationMenu extends StatelessWidget {
   final Widget child; // <-- This is the page rendered
@@ -20,19 +17,19 @@ class NavigationMenu extends StatelessWidget {
         onDestinationSelected: (index) {
           switch (index) {
             case 0:
-              context.go('/home');
+              context.push('/home');
               break;
             case 1:
-              context.go('/category');
+              context.push('/category');
               break;
             case 2:
-              context.go('/favorite');
+              context.push('/favorite');
               break;
             case 3:
-              context.go('/cart');
+              context.push('/cart');
               break;
             case 4:
-              context.go('/profile');
+              context.push('/profile');
           }
         },
         destinations: const [

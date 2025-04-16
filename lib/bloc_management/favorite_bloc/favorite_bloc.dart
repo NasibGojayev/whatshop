@@ -1,134 +1,120 @@
-import 'dart:io';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
-
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-
-import '../d_product_bloc/d_product_bloc.dart';
+import 'package:hive/hive.dart';
 import 'favorite_events.dart';
 import 'favorite_states.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 
 class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteStates>{
-  FavoriteBloc() : super(FavoriteUpdatedState([])){
-    on<CaptureProductsEvent>(_onProductsCaptured);
+  final SupabaseClient _supabase;
+  FavoriteBloc(this._supabase) : super(FavoriteLoadedState([])){
     on<ToggleFavoriteEvent>(_onToggleFavorite);
     on<RemoveFavoriteEvent>(_onRemoveFavorite);
+    on<FetchFavoriteEvent>(_onFetchFavorite);
+    init();
 
   }
+  late User? user;
+  late String userId;
+  Box<dynamic> box = Hive.box('favorites');
 
-  final Map<String,GlobalKey> _imageKeys = {};//// Store keys for each product
-  List<Product> _favoriteProducts = [];
-  void initializeKeys() {
-    _imageKeys.clear(); // Clear existing keys
+  void init() {
+    user = _supabase.auth.currentUser;
+    if (user != null) {
+      userId = user!.id;
+    } else {
+    }
   }
+
+  List<FavoriteObject> favorites = [];
+
+  void _onFetchFavorite(
+      FetchFavoriteEvent event,
+      Emitter<FavoriteStates> emit
+      ) {
+    try {
+      if (box.containsKey(userId)) {
+        favorites.clear();
+        favorites = (box.get(userId) as List<dynamic>)
+            .map((e) => FavoriteObject.fromMap(Map<String, dynamic>.from(e)))
+            .toList();
+        emit(FavoriteLoadedState(favorites));
+      } else {
+        emit(FavoriteEmptyState());
+      }
+    } catch (e) {
+      emit(FavoriteErrorState("Error fetching favorites: $e"));
+    }
+  }
+
+
+
+
 
   void _onToggleFavorite(
       ToggleFavoriteEvent event,
       Emitter<FavoriteStates> emit
-      ){
-    final updatedFavorites = List<Product>.from(_favoriteProducts);
-    if(updatedFavorites.contains(event.product)){
-      updatedFavorites.remove(event.product);
+      )  async{
+    emit(FavoriteLoadingState());
+     int index = favorites.indexWhere((e)=>e.productId == event.favoriteObject.productId);
+
+    if(0<=index){
+      favorites.removeAt(index);
     }
     else{
-      updatedFavorites.add(event.product);
+      favorites.add(event.favoriteObject);
     }
-    _favoriteProducts = updatedFavorites;
-    emit(FavoriteUpdatedState(updatedFavorites));
+
+    await box.put(userId, favorites.map((e) => e.toMap()).toList());
+    emit(FavoriteLoadedState(List.from(favorites)));
+
+
   }
 
   void _onRemoveFavorite(
       RemoveFavoriteEvent event,
       Emitter<FavoriteStates> emit
-      ){
-
-    _favoriteProducts.removeWhere((product) => product.productId == event.productId);
+      ) async{
     emit(FavoriteLoadingState());
-    emit(FavoriteUpdatedState(_favoriteProducts));
+    favorites.removeWhere((favorite) => favorite.productId == event.productId);
+
+    await box.put(userId, favorites.map((e) => e.toMap()).toList());
+    emit(FavoriteLoadedState(favorites));
   }
 
-
-  void _onProductsCaptured(
-      CaptureProductsEvent event,
-      Emitter<FavoriteStates> emit) async{
-    emit(ShareLoadingState(_favoriteProducts));
-    List<XFile> files = [];
-    List<Future<void>> tasks = []; // Bütün asinxron əməliyyatları saxlamaq üçün
-
-    for (var product in _favoriteProducts) {
-      List<String> productImages = (product.images as List<dynamic>).cast<String>();
-
-      for (int j = 0; j < productImages.length; j++) {
-        final String uniqueId = '${product.productId}_$j';
+}
 
 
-        final GlobalKey key  = getKey(uniqueId);
-
-        // Asinxron render prosesini tasks listinə əlavə edirik
-        tasks.add(_captureImage(key, product.productId, j, files));
-      }
-    }
-    // Bütün şəkillər render olunana qədər gözləyirik
-    await Future.wait(tasks);
+class FavoriteObject{
+  final String name;
+  final double price;
+  final String image;
+  final double avgRating;
+  final String productId;
 
 
-    if (files.isNotEmpty) {
-      await Share.shareXFiles(files, text: 'Seçdiyiniz məhsullar:').then((_) {
-        emit(FavoriteUpdatedState(_favoriteProducts)); // Ensure UI updates after sharing
-      }).catchError((error) {
-        print("Share cancelled or failed: $error");
-        emit(ShareFailure('$error cancelled or failed'));
-      });
-    } else {
-      print("No files were captured.");
-      emit(ShareFailure('no files were captured.'));
-    }
+  FavoriteObject({
+    required this.avgRating,
+    required this.name,
+    required this.price,
+    required this.image,
+    required this.productId,
+});
 
-
-
-
+  Map<String, dynamic> toMap(){
+    return {
+      'avgRating': avgRating,
+      'name': name,
+      'price': price,
+      'image': image,
+      'productId': productId,};
   }
-
-  GlobalKey getKey(
-      String uniqueId,){
-    if (!_imageKeys.containsKey(uniqueId)) {
-
-      _imageKeys[uniqueId] = GlobalKey(); // Create a new key if it doesn't exist
-      //print('now here creating a new $uniqueId one puahahah ${_imageKeys[uniqueId]}');
-    }
-    return _imageKeys[uniqueId]!;
-
-
+  factory FavoriteObject.fromMap(Map<String, dynamic> map){
+    return FavoriteObject(
+      avgRating: map['avgRating'],
+      name: map['name'],
+      price: map['price'],
+      image: map['image'],
+      productId: map['productId']);
   }
-
-  Future<void> _captureImage(GlobalKey key, String productId, int index, List<XFile> files) async {
-
-    RenderRepaintBoundary? boundary =
-    key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-    if (boundary == null) {
-      print("Error: RenderRepaintBoundary is null for product $productId image $index");
-      return;
-    }
-    ui.Image image = await boundary.toImage(pixelRatio: 12);
-    ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    if (byteData == null) {
-      print("Error: byteData is null for product $productId image $index");
-      return;
-    }
-    Uint8List pngBytes = byteData.buffer.asUint8List();
-    final tempDir = await getTemporaryDirectory();
-    final file = await File('${tempDir.path}/${productId}_$index.png').create();
-    await file.writeAsBytes(pngBytes);
-    files.add(XFile(file.path));
-  }
-
-
-
-
-
-
 }

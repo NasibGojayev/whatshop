@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "213064130390",
+    "firebase_url": "https://whatshop-b54b3-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "whatshop-b54b3",
+    "storage_bucket": "whatshop-b54b3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:213064130390:android:b999c6f3f7e1733e8140f7",
+        "android_client_info": {
+          "package_name": "com.whatshop.whatshop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBT5DM2mntBd3Qv34EUdw0AAs2DmRlrFUw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

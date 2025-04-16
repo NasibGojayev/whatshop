@@ -75,7 +75,7 @@ class AddressBloc extends Bloc<AddressEvent, AddressState> {
       List<Map<String, dynamic>> storedAddresses = addresses.map((address) => address.toMap()).toList();
 
       // delete the address from the list
-      storedAddresses.removeWhere((element) => element['address_id'] == event.address.address_id);
+      storedAddresses.removeWhere((element) => element['address_id'] == event.address.addressId);
 
       await box.put(userId, storedAddresses);
 
@@ -96,9 +96,7 @@ class AddressBloc extends Bloc<AddressEvent, AddressState> {
 
     try {
       var box = Hive.box('userAddresses');
-      print(box.keys);
-      print(box.values);
-      print('user id is hello world');
+
 
       List<UserAddress> updatedAddresses = [];
 
@@ -118,7 +116,6 @@ class AddressBloc extends Bloc<AddressEvent, AddressState> {
 
     } catch (e) {
       emit(AddressErrorState("Couldn't fetch the address: $e"));
-      print(e);
 
     }
   }
@@ -182,7 +179,7 @@ class AddressBloc extends Bloc<AddressEvent, AddressState> {
                 }
 
                 UserAddress address = UserAddress(
-                  address_id: generateShortUuid('ws'),
+                  addressId: generateShortUuid('ws'),
                   nameSurname: adSoyadController.text,
                   line1: addressLine1Controller.text,
                   line2: addressLine2Controller.text,
@@ -202,14 +199,14 @@ class AddressBloc extends Bloc<AddressEvent, AddressState> {
 
 // Model for UserAddress
 class UserAddress {
-  String address_id;
+  String addressId;
   final String nameSurname;
   final String line1;
   final String line2;
   final String phoneNum;
 
   UserAddress({
-    required this.address_id,
+    required this.addressId,
     required this.nameSurname,
     required this.line1,
     required this.line2,
@@ -219,7 +216,7 @@ class UserAddress {
   // Convert object to Map (for Hive storage)
   Map<String, dynamic> toMap() {
     return {
-      'address_id': address_id,
+      'address_id': addressId,
       'name': nameSurname,
       'line1': line1,
       'line2': line2,
@@ -230,7 +227,7 @@ class UserAddress {
   // Convert Map to UserAddress (for Hive retrieval)
   factory UserAddress.fromMap(Map<dynamic, dynamic> map) {
     return UserAddress(
-      address_id: map['address_id'] ?? '',
+      addressId: map['address_id'] ?? '',
       nameSurname: map['name'] ?? '',
       line1: map['line1'] ?? '',
       line2: map['line2'] ?? '',

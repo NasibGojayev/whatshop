@@ -41,7 +41,7 @@ class ProductBloc extends Bloc<ProductEvent,ProductState>{
       _productsByCategory.clear();
 
       final supabase =  Supabase.instance.client;
-      final List<Product> _products = [] ;
+      final List<Product> products = [] ;
 
       var json =[];
 
@@ -62,7 +62,7 @@ class ProductBloc extends Bloc<ProductEvent,ProductState>{
       }
 
       for(var item in json){
-        _products.add(
+        products.add(
             getProductFromJson(item)
         );
       }
@@ -72,7 +72,7 @@ class ProductBloc extends Bloc<ProductEvent,ProductState>{
 
       _productsByCategory.putIfAbsent(event.categoryId, ()=>[]);
 
-      _productsByCategory[event.categoryId]!.addAll(_products);
+      _productsByCategory[event.categoryId]!.addAll(products);
       if(_productsByCategory[event.categoryId]!.isEmpty){
         emit(EndOfProductsState());
         return;
@@ -80,7 +80,6 @@ class ProductBloc extends Bloc<ProductEvent,ProductState>{
       emit(ProductLoadedState(products:_productsByCategory[event.categoryId]!));
     }catch(error){
       emit(ProductErrorState('Error Fetching the products : $error'));
-      print(error);
     }
   }
 

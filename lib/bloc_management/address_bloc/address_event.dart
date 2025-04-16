@@ -9,7 +9,7 @@ abstract class AddressEvent extends Equatable{
 }
 
 class AddAddressEvent extends AddressEvent{
-  UserAddress address;
+  final UserAddress address;
 
   AddAddressEvent(this.address);
   @override

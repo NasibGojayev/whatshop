@@ -17,17 +17,19 @@ class CartBloc extends Bloc<CartEvent, CartState> {
   }
 
   List<CartItem> cart = [];
-  late User? user;
-  late String userId;
+   User? user;
+   String? userId;
+   String? userName;
+
   bool isFetched = false;
 
   void init() {
     user = _supabase.auth.currentUser;
     if (user != null) {
       userId = user!.id;
+      userName = user!.userMetadata?['username'];
+
       add(FetchCartEvent());
-    } else {
-      print("User is null");
     }
   }
 
@@ -37,7 +39,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     try {
       double total = 0;
       // Fetch user cart data
-      final response = await _supabase.from('users').select('cart').eq('id', userId).single();
+      final response = await _supabase.from('users').select('cart').eq('id', userName!).single();
       final List<dynamic> cartData = response['cart'] ?? [];
       if (cartData.isEmpty) {
         emit(CartEmptyState());
@@ -46,10 +48,14 @@ class CartBloc extends Bloc<CartEvent, CartState> {
 
       // Fetch product details using RPC
       final List<Product> cartProducts =[];
+      //List<String> productIds = cartData.map((item) => item['product_id'] as String).toList();
+      //var json = await _supabase.from('products').select().inFilter('product_id', productIds);
+
 
       var json = await _supabase.rpc('f_get_products', params: {
-        'user_id': userId,
+        'user_id': userName,
       });
+
       for(var item in json){
         cartProducts.add(
             getProductFromJson(item)
@@ -64,6 +70,11 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           orElse: () => null,
         );
 
+        bool isAvailable = false;
+        if(product.sizeOptions.firstWhere((element) => element.size == matchingCartItem['size']).isAvailable
+            && product.colorOptions.firstWhere((element) => element.color == matchingCartItem['color']).isAvailable){
+          isAvailable = true;
+        }
         if (matchingCartItem != null) {
           cart.add(CartItem(
             sizeOption: SizeOption(
@@ -71,13 +82,12 @@ class CartBloc extends Bloc<CartEvent, CartState> {
                 size: matchingCartItem['size'],
                 isAvailable: product.sizeOptions.firstWhere((element) => element.size == matchingCartItem['size']).isAvailable) ,
             colorOption: ColorOption(
-                color: matchingCartItem['size'] as String,
+                color: matchingCartItem['color'] as String,
                 isAvailable: product.colorOptions.firstWhere((element) => element.color == matchingCartItem['color']).isAvailable),
             quantity: matchingCartItem['quantity'] as int,
-            isSelected: matchingCartItem['isSelected'] as bool,
+            isSelected: isAvailable?true:false,
             name: product.name,
             image: product.images.isNotEmpty == true ? product.images[0] :'',
-            //price: product.sizeOption.firstWhere((element) => element.size == matchingCartItem['size']).price,
             productId: product.productId,
             
           ));
@@ -136,7 +146,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     try {
       await _supabase.from('users').update({
         'cart': cart.map((e) => e.forDb()).toList(),
-      }).eq('id', userId);
+      }).eq('id', userName!);
       double total = 0;
 
       for(var item in cart){
@@ -158,13 +168,19 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     try {
       await _supabase.from('users').update({
         'cart': cart.map((e) => e.forDb()).toList(),
-      }).eq('id', userId);
+      }).eq('id', userName!);
       for(var item in cart){
         if(item.isSelected){
           total +=item.sizeOption.price*item.quantity;
         }
       }
-      emit(CartLoadedState(List.from(cart),total)); // Emit updated cart after removal
+      if(cart.isEmpty){
+        emit(CartEmptyState());
+        return;
+      }
+      else{
+        emit(CartLoadedState(List.from(cart),total)); // Emit updated cart after removal
+      }
     } catch (e) {
       emit(CartErrorState("Couldn't delete from cart: $e"));
     }
@@ -180,14 +196,14 @@ class CartBloc extends Bloc<CartEvent, CartState> {
         cart[index].quantity = event.quantity;
 
         await _supabase.rpc('update_cart_quantity', params: {
-          'user_id': userId,
+          'user_id': userName!,
           'product_id': event.productId,
           'new_quantity': event.quantity,
         });
 
         await _supabase.from('users').update({
           'cart': cart.map((e) => e.forDb()).toList(),
-        }).eq('id', userId);
+        }).eq('id', userName!);
         for(var item in cart){
           if(item.isSelected){
             total +=item.sizeOption.price*item.quantity;
@@ -211,7 +227,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
 
         await _supabase.from('users').update({
           'cart': cart.map((e) => e.forDb()).toList(),
-        }).eq('id', userId);
+        }).eq('id', userName!);
       }
       for(var item in cart){
         if(item.isSelected){

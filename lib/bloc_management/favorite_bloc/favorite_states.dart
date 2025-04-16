@@ -1,34 +1,28 @@
-import 'package:share_plus/share_plus.dart';
+import 'package:equatable/equatable.dart';
+import 'favorite_bloc.dart';
 
-import '../d_product_bloc/d_product_bloc.dart';
-
-abstract class FavoriteStates{}
-
-class ShareInitial extends FavoriteStates {}
-
-class ProductsCapturedState extends FavoriteStates{
-  final List<XFile> capturedProducts;
-  ProductsCapturedState(this.capturedProducts);
+abstract class FavoriteStates extends Equatable{
+  @override
+  List<Object?> get props => [];
 }
 
-class ShareLoadingState extends FavoriteStates {
-  final List<dynamic> products;
 
-  ShareLoadingState(this.products);
-}
 class FavoriteLoadingState extends FavoriteStates {}
 
 
-class ShareSuccess extends FavoriteStates {
-  final List<XFile> capturedProducts;
-  ShareSuccess(this.capturedProducts);
-}
-class FavoriteUpdatedState extends FavoriteStates {
-  final List<Product> updatedFavorites;
-  FavoriteUpdatedState(this.updatedFavorites);
+class FavoriteLoadedState extends FavoriteStates {
+  final List<FavoriteObject> favorites;
+  FavoriteLoadedState(this.favorites);
+  @override
+  List<Object?> get props => [favorites];
 }
 
-class ShareFailure extends FavoriteStates {
-  final String error;
-  ShareFailure(this.error);
+class FavoriteErrorState extends FavoriteStates {
+  final String message;
+  FavoriteErrorState(this.message);
+  @override
+  List<Object?> get props => [message];
 }
+
+class FavoriteEmptyState extends FavoriteStates {}
+

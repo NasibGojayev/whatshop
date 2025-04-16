@@ -5,6 +5,8 @@ double getWidthSize(BuildContext context) {
   return MediaQuery.of(context).size.width;
 }
 
+String anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZHN6dWJrcGZybnlkdXN3emZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA0MzE4NjEsImV4cCI6MjA1NjAwNzg2MX0.gcDrC8YPB3G_kRqHYZd54QBFJJqI1J17O4zrisrm73Q';
+String url = 'https://lwdszubkpfrnyduswzfs.supabase.co';
 // Function to get screen height
 double getHeightSize(BuildContext context) {
   return MediaQuery.of(context).size.height;

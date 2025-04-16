@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:whatshop/bloc_management/category_bloc/category_bloc.dart';
 
 abstract class CategoryState extends Equatable{
 
@@ -13,7 +14,7 @@ class CategoryLoading extends CategoryState{}
 
 class CategoryLoaded extends CategoryState{
 
-  final List<Map<String,dynamic>> categories;
+  final List<CategoryObject> categories;
   final int selectedIndex;
   const CategoryLoaded(this.categories,this.selectedIndex);
 
