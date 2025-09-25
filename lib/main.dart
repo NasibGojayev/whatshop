@@ -22,8 +22,6 @@ import 'bloc_management/vendor_cubit/vendor_cubit.dart';
 
 void main() async {
 
-
-
   final stopwatch = Stopwatch()..start();
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('Binding time: ${stopwatch.elapsedMilliseconds}ms');
